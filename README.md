@@ -1,5 +1,49 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Setup (if `npm` or `bun` not found)
+
+You need **Node.js** (which includes npm) or **Bun** installed and on your PATH.
+
+### Option A: Install Node.js (recommended)
+
+1. **From the website**  
+   Download the LTS installer from [nodejs.org](https://nodejs.org/) and run it. This installs both Node.js and npm.
+
+2. **With Homebrew** (if you use it):
+   ```bash
+   brew install node
+   ```
+
+3. **Then in this project:**
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+### Option B: Use Bun
+
+If Bun is installed but not on your PATH, add it and use the run script:
+
+```bash
+export PATH="$HOME/.bun/bin:$PATH"
+./run.sh install   # install dependencies
+./run.sh dev       # start dev server
+```
+
+### If Bun shows "Integrity check failed for tarball"
+
+This is a known Bun issue with this project’s dependencies. **Use npm to install, then keep using Bun to run:**
+
+1. Install **Node.js** (includes npm) from [nodejs.org](https://nodejs.org) if you don’t have it.
+2. In the project folder run:
+
+```bash
+npm install
+bun run dev
+```
+
+After `npm install` once, `bun run dev` will work every time.
+
 ## Getting Started
 
 First, run the development server:
