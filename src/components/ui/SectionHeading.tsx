@@ -13,6 +13,8 @@ interface SectionHeadingProps {
   title: string;
   /** Second line / phrase in accent blue (matches Services hero titles). */
   titleAccent?: string;
+  /** When set with `titleAccent`, render both on one line instead of stacked. */
+  titleAccentInline?: boolean;
   description?: ReactNode;
   align?: "left" | "center";
 }
@@ -21,6 +23,7 @@ export default function SectionHeading({
   label,
   title,
   titleAccent,
+  titleAccentInline = false,
   description,
   align = "center",
 }: SectionHeadingProps) {
@@ -39,12 +42,19 @@ export default function SectionHeading({
       ) : null}
       <h2 className="heading-display text-3xl font-bold tracking-tight text-text-primary sm:text-4xl lg:text-5xl">
         {titleAccent ? (
-          <span
-            className={`flex flex-col ${titleStackAlign} gap-0 leading-[1.05] sm:leading-[1.08]`}
-          >
-            <span className="block text-text-primary">{title}</span>
-            <span className="block text-accent">{titleAccent}</span>
-          </span>
+          titleAccentInline ? (
+            <span className="block leading-[1.08] sm:leading-[1.1]">
+              <span className="text-text-primary">{title}</span>{" "}
+              <span className="text-accent">{titleAccent}</span>
+            </span>
+          ) : (
+            <span
+              className={`flex flex-col ${titleStackAlign} gap-0 leading-[1.05] sm:leading-[1.08]`}
+            >
+              <span className="block text-text-primary">{title}</span>
+              <span className="block text-accent">{titleAccent}</span>
+            </span>
+          )
         ) : (
           title
         )}

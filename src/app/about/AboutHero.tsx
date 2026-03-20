@@ -39,9 +39,10 @@ export default function AboutHero() {
           transition={{ duration: 0.45, delay: 0.14 }}
           className="mx-auto mt-4 max-w-xl text-base text-text-secondary"
         >
-          I build scalable software products and combine engineering with
-          distribution and go-to-market—bilingual (English / Spanish), based in
-          the Miami–Fort Lauderdale area.
+          I&apos;m a software engineer with an MBA, with real experience in
+          product growth as well as hands-on engineering—I build scalable
+          software and pair technical execution with distribution and
+          go-to-market. Bilingual (English / Spanish), based in Miami, FL 🏝️.
         </motion.p>
       </div>
     </section>

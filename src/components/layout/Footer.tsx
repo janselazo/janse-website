@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import NewsletterSignup from "@/components/ui/NewsletterSignup";
+import { navLinks } from "@/lib/data";
 
 export default function Footer() {
   return (
@@ -24,25 +25,38 @@ export default function Footer() {
             <h4 className="mb-4 text-xs font-semibold uppercase tracking-widest text-text-primary">
               Navigate
             </h4>
-            <div className="flex flex-col gap-2">
-              {[
-                { label: "Services", href: "/services" },
-                { label: "Case Studies", href: "/case-studies" },
-                { label: "Studio", href: "/studio" },
-                { label: "Pricing", href: "/pricing" },
-                { label: "About Me", href: "/about" },
-                { label: "Blog", href: "/blog" },
-                { label: "Resources", href: "/resources" },
-                { label: "Contact Us", href: "/contact" },
-              ].map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm text-text-secondary transition-colors hover:text-accent"
-                >
-                  {link.label}
-                </Link>
-              ))}
+            <div className="flex flex-col gap-3">
+              {navLinks.map((link) =>
+                link.children ? (
+                  <div key={link.href} className="flex flex-col gap-2">
+                    <Link
+                      href={link.href}
+                      className="text-sm font-medium text-text-primary transition-colors hover:text-accent"
+                    >
+                      {link.label}
+                    </Link>
+                    <div className="ml-1 flex flex-col gap-1.5 border-l border-border pl-3">
+                      {link.children.map((child) => (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className="text-sm text-text-secondary transition-colors hover:text-accent"
+                        >
+                          {child.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="text-sm text-text-secondary transition-colors hover:text-accent"
+                  >
+                    {link.label}
+                  </Link>
+                ),
+              )}
             </div>
           </div>
 

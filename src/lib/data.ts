@@ -378,7 +378,7 @@ export const methodologyPillars: MethodologyPillar[] = [
 
 export const experienceStats = [
   { value: "50+", label: "Projects delivered" },
-  { value: "8+", label: "Years building software" },
+  { value: "9+", label: "Years building software" },
   { value: "30+", label: "Client teams" },
   { value: "1", label: "Live studio product" },
 ];
@@ -514,7 +514,7 @@ export const blogPosts: BlogPost[] = [
     date: "2026-03-01",
     readTime: "6 min read",
     category: "Methodology",
-    content: `The tech industry obsesses over stack choices. React vs. Vue. PostgreSQL vs. MongoDB. AWS vs. GCP. But after 8+ years of building software that scales, I've learned that the most important decision isn't which tools you pick — it's whether your architecture can evolve when your assumptions change.
+    content: `The tech industry obsesses over stack choices. React vs. Vue. PostgreSQL vs. MongoDB. AWS vs. GCP. But after 9+ years of building software that scales, I've learned that the most important decision isn't which tools you pick — it's whether your architecture can evolve when your assumptions change.
 
 ## The Growth Mindset in Engineering
 
@@ -765,13 +765,25 @@ export const resourceItems: ResourceItem[] = [
   },
 ];
 
-export const navLinks = [
+export interface NavLinkItem {
+  label: string;
+  href: string;
+  /** Nested items shown under this link (e.g. Resources mega-menu). */
+  children?: NavLinkItem[];
+}
+
+export const navLinks: NavLinkItem[] = [
   { label: "Services", href: "/services" },
   { label: "Case Studies", href: "/case-studies" },
   { label: "Studio", href: "/studio" },
-  { label: "Pricing", href: "/pricing" },
-  { label: "About Me", href: "/about" },
-  { label: "Blog", href: "/blog" },
-  { label: "Resources", href: "/resources" },
-  { label: "Contact Us", href: "/contact" },
+  {
+    label: "Resources",
+    href: "/resources",
+    children: [
+      { label: "Pricing", href: "/pricing" },
+      { label: "About Me", href: "/about" },
+      { label: "Blog", href: "/blog" },
+    ],
+  },
+  { label: "Contact", href: "/contact" },
 ];

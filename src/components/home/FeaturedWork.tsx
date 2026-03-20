@@ -13,6 +13,7 @@ export default function FeaturedWork() {
         label="Featured case studies"
         title="Recent"
         titleAccent="outcomes"
+        titleAccentInline
         description="SaaS web apps, ecommerce stores, and marketing sites for the teams you see above. Each build is meant to ship cleanly and hand off without friction."
       />
 

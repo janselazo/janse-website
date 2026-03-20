@@ -7,7 +7,7 @@ import Button from "@/components/ui/Button";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Janse Lazo — Zenpho, custom AI software and AI agents, Miami–Fort Lauderdale. Background, highlights, and how I work with teams.",
+    "Janse Lazo — software engineer with an MBA, product growth experience, Zenpho and custom AI software. Miami, FL.",
 };
 
 const highlights = [
@@ -18,6 +18,7 @@ const highlights = [
 ] as const;
 
 const credentials = [
+  "MBA",
   "HubSpot certifications",
   "Google Ads certifications",
   "Semrush certifications",
@@ -34,7 +35,7 @@ export default function AboutPage() {
           label="Story"
           title="From strong foundations to"
           titleAccent="product-led growth"
-          description="My path is shaped by engineering education at CUJAE and a move toward building software businesses in the U.S.—with a focus on products that scale and teams that can run them after launch."
+          description="My path is shaped by engineering at CUJAE, an MBA, and building software businesses in the U.S.—with strong experience in product growth, GTM, and products that scale so teams can run them after launch."
         />
         <Card className="border-border/80 bg-white p-8 shadow-soft sm:p-10">
           <p className="text-base leading-relaxed text-text-secondary">
@@ -78,10 +79,21 @@ export default function AboutPage() {
           label="Today"
           title="Zenpho & client"
           titleAccent="work"
-          description="Through Zenpho and direct engagements, I focus on custom AI software and AI agents for organizations that need production guardrails, integrations, and interfaces their teams will actually use."
+          description="Through Zenpho and direct engagements, I combine high-visibility music and entertainment promotion with custom AI software and agents—guardrails, integrations, and interfaces teams actually use."
         />
         <Card className="border-border/80 bg-white p-8 shadow-soft sm:p-10">
           <p className="text-base leading-relaxed text-text-secondary">
+            With Zenpho, I&apos;ve worked with recognized artists including{" "}
+            <span className="font-medium text-text-primary">Marc Anthony</span>
+            ,{" "}
+            <span className="font-medium text-text-primary">Fonseca</span>,{" "}
+            <span className="font-medium text-text-primary">Gente de Zona</span>
+            , <span className="font-medium text-text-primary">Guaco</span>, and{" "}
+            <span className="font-medium text-text-primary">Los Van Van</span>
+            —promoting their music launches, concert tours and live shows
+            (giras), and video campaigns.
+          </p>
+          <p className="mt-6 text-base leading-relaxed text-text-secondary">
             Whether it is LLM-powered apps, automation, or mobile and web
             surfaces tied to your data, the goal is the same: ship something
             measurable, maintainable, and aligned with how your business
@@ -120,7 +132,7 @@ export default function AboutPage() {
           label="Credentials"
           title="Trust"
           titleAccent="& craft"
-          description="Marketing and growth-platform certifications I maintain alongside hands-on engineering—useful when AI products need to connect to campaigns, funnels, and analytics."
+          description="MBA plus marketing and growth-platform certifications I maintain alongside hands-on engineering—useful when AI products need to connect to campaigns, funnels, and analytics."
         />
         <div className="flex flex-wrap gap-3">
           {credentials.map((c) => (

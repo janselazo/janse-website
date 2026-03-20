@@ -13,7 +13,7 @@ export default function AboutIntro() {
         className="text-center"
       >
         <p className="text-lg leading-relaxed text-text-secondary sm:text-xl">
-          For eight years I&apos;ve shipped custom software for startups and
+          For nine years I&apos;ve shipped custom software for startups and
           larger teams. Today that work centers on{" "}
           <span className="font-medium text-text-primary">
             practical AI in production
