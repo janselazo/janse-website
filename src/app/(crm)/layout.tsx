@@ -2,6 +2,9 @@ import AppSidebar from "@/components/app/AppSidebar";
 import SupabaseSetupBanner from "@/components/app/SupabaseSetupBanner";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
+/** Avoid static prerender: server pages call Supabase; build env may omit public keys. */
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "CRM",
   robots: { index: false, follow: false },

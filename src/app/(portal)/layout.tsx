@@ -3,6 +3,9 @@ import { redirect } from "next/navigation";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
+/** Avoid static prerender without Supabase env (e.g. Vercel previews). */
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Client portal",
   robots: { index: false, follow: false },
