@@ -15,14 +15,14 @@ const clients = [
 
 export default function Hero() {
   return (
-    <section className="hero-sky relative flex min-h-screen flex-col overflow-hidden pt-28 pb-8">
-      <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center px-6 pb-6 text-center">
+    <section className="hero-sky relative overflow-hidden pb-12 pt-20 sm:pt-24">
+      <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col px-6 pb-2 pt-2 text-center sm:pt-4">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55 }}
         >
-          <span className={`mb-5 ${SECTION_EYEBROW_CLASSNAME}`}>
+          <span className={`mb-4 ${SECTION_EYEBROW_CLASSNAME}`}>
             AI Product Studio
           </span>
         </motion.div>
@@ -65,7 +65,7 @@ export default function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.55, delay: 0.4 }}
-          className="mx-auto mt-20 grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4"
+          className="mx-auto mt-14 grid max-w-3xl grid-cols-2 gap-3 sm:mt-16 sm:grid-cols-4"
         >
           {experienceStats.map((stat, i) => (
             <motion.div
@@ -97,7 +97,7 @@ export default function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.75 }}
-          className="mt-16"
+          className="mt-12 sm:mt-14"
         >
           <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-text-secondary/80">
             Built for
@@ -113,21 +113,21 @@ export default function Hero() {
             ))}
           </div>
         </motion.div>
-      </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.1, duration: 0.45 }}
-        className="relative z-10 flex shrink-0 justify-center pb-1"
-      >
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-text-secondary/50">
-            Scroll
-          </span>
-          <div className="h-6 w-px rounded-full bg-gradient-to-b from-accent/50 to-transparent" />
-        </div>
-      </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.95, duration: 0.45 }}
+          className="mt-8 flex justify-center sm:mt-10"
+        >
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-text-secondary/50">
+              Scroll
+            </span>
+            <div className="h-6 w-px rounded-full bg-gradient-to-b from-accent/50 to-transparent" />
+          </div>
+        </motion.div>
+      </div>
     </section>
   );
 }
