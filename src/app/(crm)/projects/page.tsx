@@ -79,7 +79,7 @@ export default function ProjectsPage() {
           onChange={(e) => setFilterPlan(e.target.value)}
           className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm text-text-primary"
         >
-          <option value="all">All Plan</option>
+          <option value="all">All Status</option>
           {planOrder.map((p) => (
             <option key={p} value={p}>
               {PLAN_LABELS[p]}

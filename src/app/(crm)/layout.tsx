@@ -6,7 +6,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "CRM",
+  title: "AI Product Studio",
   robots: { index: false, follow: false },
 };
 

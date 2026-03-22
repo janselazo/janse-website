@@ -7,12 +7,16 @@ const AUTH_PATHS = ["/login", "/register", "/forgot-password"];
 const AGENCY_APP_PREFIXES = [
   "/dashboard",
   "/leads",
+  "/deals",
   "/projects",
   "/calendar",
   "/settings",
   "/timeline",
+
   "/team",
   "/capacity",
+  "/reports",
+  "/prospecting",
 ];
 
 function isAuthPath(pathname: string) {

@@ -5,37 +5,46 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
+  Target,
   FolderKanban,
   GanttChart,
+  UsersRound,
   Users,
   BarChart3,
+  FileBarChart,
   Building2,
+  Handshake,
   Calendar,
   Settings,
   LogOut,
   ChevronDown,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { projects, teams } from "@/lib/crm/mock-data";
+import { projects } from "@/lib/crm/mock-data";
 
-const workspaceNav = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/projects", label: "Projects", icon: FolderKanban },
-  { href: "/timeline", label: "Timeline", icon: GanttChart },
-  { href: "/team", label: "Team", icon: Users },
-  { href: "/capacity", label: "Capacity", icon: BarChart3 },
+const prospectsNav = [
+  { href: "/leads", label: "Leads", icon: UsersRound },
+  { href: "/calendar", label: "Appointments", icon: Calendar },
+  { href: "/deals", label: "Deals", icon: Handshake },
+  { href: "/clients", label: "Clients", icon: Building2 },
 ];
 
-const crmNav = [
-  { href: "/leads", label: "Clients", icon: Building2 },
-  { href: "/calendar", label: "Appointments", icon: Calendar },
+const workNav = [
+  { href: "/projects", label: "Projects", icon: FolderKanban },
+  { href: "/timeline", label: "Timeline", icon: GanttChart },
+];
+
+const agencyNav = [
+  { href: "/team", label: "Team", icon: Users },
+  { href: "/capacity", label: "Capacity", icon: BarChart3 },
+  { href: "/reports", label: "Reports", icon: FileBarChart },
 ];
 
 export default function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [projectsOpen, setProjectsOpen] = useState(true);
-  const [teamsOpen, setTeamsOpen] = useState(true);
+
 
   async function signOut() {
     try {
@@ -51,9 +60,33 @@ export default function AppSidebar() {
   return (
     <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-white">
       <div className="flex-1 overflow-y-auto">
-        {/* Workspace */}
-        <NavGroup label="Workspace">
-          {workspaceNav.map(({ href, label, icon: Icon }) => (
+        {/* Brand */}
+        <div className="flex items-center gap-2.5 border-b border-border px-4 py-3.5">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-sm font-bold text-blue-600 ring-1 ring-border">
+            J
+          </span>
+          <span className="text-sm font-semibold text-text-primary">
+            AI Product Studio
+          </span>
+        </div>
+
+        {/* Dashboard */}
+        <div className="px-2 pt-4">
+          <nav className="flex flex-col gap-0.5">
+            <NavLink href="/dashboard" active={isActive(pathname, "/dashboard")}>
+              <LayoutDashboard className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+              Dashboard
+            </NavLink>
+            <NavLink href="/prospecting" active={isActive(pathname, "/prospecting")}>
+              <Target className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+              Prospecting
+            </NavLink>
+          </nav>
+        </div>
+
+        {/* Prospects */}
+        <NavGroup label="Prospects">
+          {prospectsNav.map(({ href, label, icon: Icon }) => (
             <NavLink key={href} href={href} active={isActive(pathname, href)}>
               <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
               {label}
@@ -61,9 +94,19 @@ export default function AppSidebar() {
           ))}
         </NavGroup>
 
-        {/* CRM */}
-        <NavGroup label="CRM">
-          {crmNav.map(({ href, label, icon: Icon }) => (
+        {/* Work */}
+        <NavGroup label="Work">
+          {workNav.map(({ href, label, icon: Icon }) => (
+            <NavLink key={href} href={href} active={isActive(pathname, href)}>
+              <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+              {label}
+            </NavLink>
+          ))}
+        </NavGroup>
+
+        {/* Agency */}
+        <NavGroup label="Agency">
+          {agencyNav.map(({ href, label, icon: Icon }) => (
             <NavLink key={href} href={href} active={isActive(pathname, href)}>
               <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
               {label}
@@ -92,26 +135,6 @@ export default function AppSidebar() {
           ))}
         </CollapsibleGroup>
 
-        {/* Teams list */}
-        <CollapsibleGroup
-          label="Teams"
-          open={teamsOpen}
-          onToggle={() => setTeamsOpen(!teamsOpen)}
-        >
-          {teams.map((t) => (
-            <NavLink
-              key={t.id}
-              href={`/team?t=${t.id}`}
-              active={false}
-            >
-              <span
-                className="h-2.5 w-2.5 shrink-0 rounded-full"
-                style={{ backgroundColor: t.color }}
-              />
-              <span className="truncate">{t.name}</span>
-            </NavLink>
-          ))}
-        </CollapsibleGroup>
       </div>
 
       {/* Bottom */}
@@ -144,9 +167,12 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function NavGroup({ children }: { label?: string; children: React.ReactNode }) {
+function NavGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="px-2 pt-3">
+    <div className="px-2 pt-6">
+      <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-widest text-text-secondary/50">
+        {label}
+      </p>
       <nav className="flex flex-col gap-0.5">{children}</nav>
     </div>
   );
@@ -164,7 +190,7 @@ function CollapsibleGroup({
   children: React.ReactNode;
 }) {
   return (
-    <div className="px-2 pt-4">
+    <div className="px-2 pt-6">
       <button
         type="button"
         onClick={onToggle}

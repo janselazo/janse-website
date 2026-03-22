@@ -4,9 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Search } from "lucide-react";
-import KanbanBoard, { type KanbanColumn } from "@/components/crm/KanbanBoard";
 import { LEAD_STAGE_LABELS, type LeadStage } from "@/lib/crm/mock-data";
-import { createLead, updateLead } from "@/app/(crm)/actions/crm";
+import { createLead } from "@/app/(crm)/actions/crm";
 
 export interface Lead {
   id: string;
@@ -20,33 +19,18 @@ export interface Lead {
   created_at?: string | null;
 }
 
-type ViewMode = "table" | "pipeline";
-
-const stageOrder: LeadStage[] = [
-  "new",
-  "contacted",
-  "qualified",
-  "proposal",
-  "won",
-  "lost",
-];
-
 const stageColors: Record<LeadStage, string> = {
   new: "#6b7280",
   contacted: "#3b82f6",
   qualified: "#8b5cf6",
-  proposal: "#f59e0b",
-  won: "#10b981",
-  lost: "#ef4444",
+  not_qualified: "#ef4444",
 };
 
 const stageBgClasses: Record<string, string> = {
   new: "bg-gray-100 text-gray-800",
   contacted: "bg-blue-100 text-blue-800",
   qualified: "bg-violet-100 text-violet-800",
-  proposal: "bg-amber-100 text-amber-800",
-  won: "bg-emerald-100 text-emerald-800",
-  lost: "bg-red-100 text-red-800",
+  not_qualified: "bg-red-100 text-red-800",
 };
 
 const sourceBgClasses: Record<string, string> = {
@@ -73,12 +57,10 @@ function formatDate(iso?: string | null) {
 }
 
 export default function LeadsView({ leads }: { leads: Lead[] }) {
-  const [view, setView] = useState<ViewMode>("table");
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [localLeads, setLocalLeads] = useState<Lead[]>(leads);
 
-  const filtered = localLeads.filter((l) => {
+  const filtered = leads.filter((l) => {
     if (!search) return true;
     const q = search.toLowerCase();
     return (
@@ -89,41 +71,16 @@ export default function LeadsView({ leads }: { leads: Lead[] }) {
     );
   });
 
-  const kanbanColumns: KanbanColumn<Lead>[] = stageOrder.map((stage) => ({
-    id: stage,
-    label: LEAD_STAGE_LABELS[stage],
-    color: stageColors[stage],
-    items: filtered.filter((l) => (l.stage ?? "new") === stage),
-  }));
-
-  function handleMove(itemId: string, _from: string, to: string) {
-    setLocalLeads((prev) =>
-      prev.map((l) => (l.id === itemId ? { ...l, stage: to } : l))
-    );
-    const lead = localLeads.find((l) => l.id === itemId);
-    if (!lead) return;
-    const fd = new FormData();
-    fd.set("id", itemId);
-    fd.set("name", lead.name ?? "");
-    fd.set("email", lead.email ?? "");
-    fd.set("company", lead.company ?? "");
-    fd.set("phone", lead.phone ?? "");
-    fd.set("source", lead.source ?? "");
-    fd.set("stage", to);
-    fd.set("notes", lead.notes ?? "");
-    void updateLead(fd);
-  }
-
   return (
     <div>
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="heading-display text-2xl font-bold text-text-primary">
-            Clients
+            Leads
           </h1>
           <p className="mt-1 text-sm text-text-secondary">
-            Companies and contacts you work with
+            Track and manage your sales prospects
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -142,59 +99,23 @@ export default function LeadsView({ leads }: { leads: Lead[] }) {
             onClick={() => setModalOpen(true)}
             className="shrink-0 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accent-hover"
           >
-            + Add Client
+            + Add Lead
           </button>
         </div>
       </div>
 
-      {/* View toggles + count */}
-      <div className="mt-4 flex items-center gap-4">
-        <div className="inline-flex rounded-lg border border-border bg-surface/50 p-0.5">
-          {(["table", "pipeline"] as ViewMode[]).map((v) => (
-            <button
-              key={v}
-              type="button"
-              onClick={() => setView(v)}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
-                view === v
-                  ? "bg-white text-text-primary shadow-sm"
-                  : "text-text-secondary hover:text-text-primary"
-              }`}
-            >
-              {v === "pipeline" ? "Pipeline" : "Table"}
-            </button>
-          ))}
-        </div>
+      {/* Count */}
+      <div className="mt-4">
         <span className="text-sm text-text-secondary">
-          {filtered.length} clients
+          {filtered.length} leads
         </span>
       </div>
 
-      {/* Content */}
+      {/* Table */}
       <div className="mt-6">
-        {view === "table" && <LeadsTable leads={filtered} />}
-        {view === "pipeline" && (
-          <KanbanBoard
-            columns={kanbanColumns}
-            onMove={handleMove}
-            renderCard={(lead) => (
-              <Link
-                href={`/leads/${lead.id}`}
-                className="block rounded-xl border border-border bg-white p-3 shadow-sm transition-shadow hover:shadow-md"
-              >
-                <p className="text-sm font-medium text-text-primary">
-                  {lead.name ?? "—"}
-                </p>
-                <p className="mt-1 text-xs text-text-secondary">
-                  {lead.company ?? ""}
-                </p>
-              </Link>
-            )}
-          />
-        )}
+        <LeadsTable leads={filtered} />
       </div>
 
-      {/* New Client Modal */}
       {modalOpen && (
         <NewLeadModal onClose={() => setModalOpen(false)} />
       )}
@@ -206,7 +127,7 @@ function LeadsTable({ leads }: { leads: Lead[] }) {
   if (leads.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-border bg-white py-16 text-center text-sm text-text-secondary">
-        No clients found.
+        No leads found.
       </div>
     );
   }
@@ -341,7 +262,7 @@ function NewLeadModal({ onClose }: { onClose: () => void }) {
           id="new-lead-title"
           className="text-sm font-bold uppercase tracking-wider text-text-secondary"
         >
-          New Client
+          New Lead
         </h2>
 
         {error && (
@@ -400,7 +321,7 @@ function NewLeadModal({ onClose }: { onClose: () => void }) {
               disabled={pending}
               className="rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-hover disabled:opacity-60"
             >
-              {pending ? "Saving…" : "Add client"}
+              {pending ? "Saving…" : "Add lead"}
             </button>
             <button
               type="button"
