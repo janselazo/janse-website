@@ -15,7 +15,7 @@ const clients = [
 
 export default function Hero() {
   return (
-    <section className="hero-sky relative overflow-hidden pb-12 pt-20 sm:pt-24">
+    <section className="hero-sky relative overflow-hidden pb-12 pt-32 sm:pt-36">
       <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col px-6 pb-2 pt-2 text-center sm:pt-4">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
