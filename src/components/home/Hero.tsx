@@ -113,20 +113,6 @@ export default function Hero() {
             ))}
           </div>
         </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.95, duration: 0.45 }}
-          className="mt-8 flex justify-center sm:mt-10"
-        >
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-text-secondary/50">
-              Scroll
-            </span>
-            <div className="h-6 w-px rounded-full bg-gradient-to-b from-accent/50 to-transparent" />
-          </div>
-        </motion.div>
       </div>
     </section>
   );
