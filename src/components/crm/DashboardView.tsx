@@ -35,6 +35,7 @@ import {
   type ProspectingTask,
   type ProspectingTaskType,
 } from "@/lib/crm/mock-data";
+import { getCompletions } from "@/lib/crm/playbook-store";
 import type { DailyMoneyPoint } from "@/components/crm/DashboardCharts";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -173,11 +174,25 @@ export default function DashboardView({
   const heatmap = buildDealsHeatmap();
   const profit = revenueWeek - expensesWeek;
 
+  const completions = getCompletions();
   const totalActivities = playbookCategories.reduce(
     (s, c) => s + c.activities.length, 0
   );
+  const completedActivities = playbookCategories.reduce(
+    (s, c) =>
+      s + c.activities.filter((a) => (completions[a.id] ?? 0) >= a.target).length,
+    0
+  );
   const totalPoints = playbookCategories.reduce(
     (s, c) => s + c.activities.reduce((a, act) => a + act.points, 0), 0
+  );
+  const earnedPoints = playbookCategories.reduce(
+    (s, c) =>
+      s + c.activities.reduce((a, act) => {
+        const done = completions[act.id] ?? 0;
+        return a + (done >= act.target ? act.points : 0);
+      }, 0),
+    0
   );
 
   return (
@@ -220,7 +235,7 @@ export default function DashboardView({
             <div>
               <p className="text-xs text-text-secondary">Today&apos;s Progress</p>
               <p className="text-sm font-semibold text-text-primary">
-                0 / {totalActivities}
+                {completedActivities} / {totalActivities}
               </p>
             </div>
           </div>
@@ -229,7 +244,7 @@ export default function DashboardView({
             <div>
               <p className="text-xs text-text-secondary">Points Today</p>
               <p className="text-sm font-semibold text-text-primary">
-                0 / {totalPoints}
+                {earnedPoints} / {totalPoints}
               </p>
             </div>
           </div>
@@ -237,7 +252,7 @@ export default function DashboardView({
             <Clock className="h-5 w-5 text-text-secondary" />
             <div>
               <p className="text-xs text-text-secondary">Current Streak</p>
-              <p className="text-sm font-semibold text-text-primary">0 days</p>
+              <p className="text-sm font-semibold text-text-primary">{completedActivities > 0 ? "1" : "0"} days</p>
             </div>
           </div>
           <Link

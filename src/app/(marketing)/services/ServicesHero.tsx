@@ -37,9 +37,7 @@ export default function ServicesHero() {
           Plus{" "}
           <span className="text-text-primary">product-led growth</span> —
           acquisition, retention, and monetization — backed by integrations, AI
-          where it earns its place, and automation that survives real ops. Same
-          mindset as the homepage: we build what you need to win, with a first
-          working version fast and steady weekly progress after that.
+          where it earns its place, and automation that survives real ops.
         </motion.p>
 
         <motion.div

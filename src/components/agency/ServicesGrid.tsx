@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+
 import { motion } from "framer-motion";
 import { services } from "@/lib/data";
 import SectionHeading from "@/components/ui/SectionHeading";
@@ -103,13 +103,6 @@ export default function ServicesGrid() {
               <span className="font-medium text-text-primary">Growth</span> is
               experiments, funnels, and lifecycle work — always tied to metrics you
               care about, not vanity dashboards.
-            </p>
-            <p className="mt-3">
-              Stack choices follow your goals (
-              <Link href="/" className="text-accent underline-offset-2 hover:underline">
-                same promise as Tools &amp; platforms
-              </Link>
-              ).
             </p>
           </>
         }

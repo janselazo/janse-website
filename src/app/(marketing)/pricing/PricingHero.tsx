@@ -41,7 +41,7 @@ export default function PricingHero() {
           <span className="text-text-primary">Development</span> to build product,
           or <span className="text-text-primary">Growth</span> for acquisition,
           retention, and monetization experiments. Outside packages:{" "}
-          <span className="font-medium text-text-primary">$100–150/h</span>.
+          <span className="font-medium text-text-primary">$100–$150/h</span>.
         </motion.p>
       </div>
     </section>

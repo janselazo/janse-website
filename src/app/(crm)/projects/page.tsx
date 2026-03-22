@@ -21,6 +21,7 @@ export default function ProjectsPage() {
   const [filterPlan, setFilterPlan] = useState<string>("all");
   const [filterTeam, setFilterTeam] = useState<string>("all");
   const [projectList, setProjectList] = useState<MockProject[]>(initialProjects);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const filtered = projectList.filter((p) => {
     if (filterPlan !== "all" && p.plan !== filterPlan) return false;
@@ -65,6 +66,7 @@ export default function ProjectsPage() {
         </div>
         <button
           type="button"
+          onClick={() => setModalOpen(true)}
           className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-accent-hover"
         >
           + Add Project
@@ -105,13 +107,23 @@ export default function ProjectsPage() {
           <KanbanBoard
             columns={kanbanColumns}
             renderCard={(project) => <ProjectCard project={project} />}
-            onAddNew={() => {}}
+            onAddNew={() => setModalOpen(true)}
             onMove={handleMove}
           />
         ) : (
           <ProjectTable projects={filtered} />
         )}
       </div>
+
+      {modalOpen && (
+        <NewProjectModal
+          onClose={() => setModalOpen(false)}
+          onAdd={(project) => {
+            setProjectList((prev) => [...prev, project]);
+            setModalOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -175,6 +187,113 @@ function ProjectTable({ projects: items }: { projects: MockProject[] }) {
           })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function NewProjectModal({
+  onClose,
+  onAdd,
+}: {
+  onClose: () => void;
+  onAdd: (p: MockProject) => void;
+}) {
+  const [title, setTitle] = useState("");
+  const [plan, setPlan] = useState<PlanStage>("pipeline");
+  const [teamId, setTeamId] = useState(teams[0]?.id ?? "");
+  const [endDate, setEndDate] = useState("");
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!title.trim()) return;
+    onAdd({
+      id: `proj-${Date.now()}`,
+      title: title.trim(),
+      plan,
+      teamId,
+      color: "#6366f1",
+      expectedEndDate: endDate || "TBD",
+      sprintCount: 0,
+      taskCount: 0,
+    });
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      onClick={onClose}
+    >
+      <form
+        onClick={(e) => e.stopPropagation()}
+        onSubmit={handleSubmit}
+        className="w-full max-w-md rounded-2xl border border-border bg-white p-6 shadow-xl"
+      >
+        <h2 className="text-lg font-semibold text-text-primary">New Project</h2>
+
+        <label className="mt-4 block text-sm font-medium text-text-secondary">
+          Project Name
+        </label>
+        <input
+          autoFocus
+          required
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          placeholder="e.g. Acme Redesign"
+        />
+
+        <label className="mt-4 block text-sm font-medium text-text-secondary">
+          Status
+        </label>
+        <select
+          value={plan}
+          onChange={(e) => setPlan(e.target.value as PlanStage)}
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+        >
+          {planOrder.map((p) => (
+            <option key={p} value={p}>{PLAN_LABELS[p]}</option>
+          ))}
+        </select>
+
+        <label className="mt-4 block text-sm font-medium text-text-secondary">
+          Team
+        </label>
+        <select
+          value={teamId}
+          onChange={(e) => setTeamId(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+        >
+          {teams.map((t) => (
+            <option key={t.id} value={t.id}>{t.name}</option>
+          ))}
+        </select>
+
+        <label className="mt-4 block text-sm font-medium text-text-secondary">
+          Expected End Date
+        </label>
+        <input
+          type="date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+        />
+
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg px-4 py-2 text-sm text-text-secondary hover:text-text-primary"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-accent-hover"
+          >
+            Add Project
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

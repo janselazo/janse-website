@@ -202,7 +202,7 @@ export default function PricingGrid() {
             </p>
             <p>
               Outside these packages, hourly work typically runs{" "}
-              <span className="font-medium text-text-primary">$100–150/h</span>.
+              <span className="font-medium text-text-primary">$100–$150/h</span>.
             </p>
           </>
         }

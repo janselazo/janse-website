@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -29,6 +29,7 @@ import TabBar from "@/components/crm/TabBar";
 import {
   playbookCategories,
   monthlyGoals,
+  deals,
   prospectingTasks,
   PROSPECTING_TASK_TYPE_LABELS,
   type PlaybookCategory,
@@ -38,6 +39,7 @@ import {
   type ProspectingTaskType,
   type ProspectingTaskStatus,
 } from "@/lib/crm/mock-data";
+import { getCompletions, saveCompletions } from "@/lib/crm/playbook-store";
 
 // ── Shared helpers ──────────────────────────────────────────────────────────
 
@@ -140,10 +142,36 @@ const TABS = [
   { id: "tasks", label: "Tasks" },
 ];
 
+function getMonthlyDealsMetrics() {
+  const now = new Date();
+  const month = now.getMonth();
+  const year = now.getFullYear();
+  const wonThisMonth = deals.filter((d) => {
+    if (d.stage !== "closed_won") return false;
+    const close = new Date(d.expectedClose);
+    return close.getMonth() === month && close.getFullYear() === year;
+  });
+  return {
+    wonCount: wonThisMonth.length,
+    wonRevenue: wonThisMonth.reduce((s, d) => s + d.value, 0),
+  };
+}
+
 export default function ProspectingView() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("playbook");
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [goals, setGoals] = useState<MonthlyGoal[]>(monthlyGoals);
+
+  const { wonCount, wonRevenue } = getMonthlyDealsMetrics();
+  const goalsWithActuals = useMemo(
+    () =>
+      goals.map((g) => {
+        if (g.id === "mg-1") return { ...g, current: wonCount };
+        if (g.id === "mg-2") return { ...g, current: wonRevenue };
+        return g;
+      }),
+    [goals, wonCount, wonRevenue]
+  );
 
   return (
     <div>
@@ -158,7 +186,7 @@ export default function ProspectingView() {
       </div>
 
       {/* Monthly Goals */}
-      <MonthlyGoalsCard goals={goals} onChange={setGoals} />
+      <MonthlyGoalsCard goals={goalsWithActuals} onChange={setGoals} />
 
       {/* Date navigator */}
       <div className="mt-6">
@@ -206,16 +234,6 @@ function MonthlyGoalsCard({
     const val = Math.max(1, editValue);
     onChange(goals.map((goal) => (goal.id === g.id ? { ...goal, target: val } : goal)));
     setEditingId(null);
-  }
-
-  function incrementGoal(id: string) {
-    onChange(
-      goals.map((g) =>
-        g.id === id && g.current < g.target
-          ? { ...g, current: g.current + 1 }
-          : g
-      )
-    );
   }
 
   function addGoal() {
@@ -319,16 +337,12 @@ function MonthlyGoalsCard({
               {g.unit === "count" ? (
                 <div className="mt-2 flex items-center gap-1.5">
                   {Array.from({ length: g.target }).map((_, i) => (
-                    <button
+                    <span
                       key={i}
-                      type="button"
-                      onClick={() => {
-                        if (i >= g.current) incrementGoal(g.id);
-                      }}
-                      className={`h-2.5 w-2.5 rounded-full transition-colors ${
+                      className={`h-2.5 w-2.5 rounded-full ${
                         i < g.current
                           ? "bg-emerald-500"
-                          : "bg-gray-200 hover:bg-emerald-300"
+                          : "bg-gray-200"
                       }`}
                     />
                   ))}
@@ -365,8 +379,12 @@ function MonthlyGoalsCard({
 // ── Playbook Tab ────────────────────────────────────────────────────────────
 
 function PlaybookTab() {
-  const [completions, setCompletions] = useState<Record<string, number>>({});
+  const [completions, setCompletions] = useState<Record<string, number>>(getCompletions);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    saveCompletions(completions);
+  }, [completions]);
 
   const totalPoints = playbookCategories.reduce(
     (sum, c) => sum + c.activities.reduce((s, a) => s + a.points, 0),

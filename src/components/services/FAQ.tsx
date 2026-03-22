@@ -19,10 +19,10 @@ const faqs = [
   },
   {
     q: "Can we change the level of engagement over time?",
-    a: "Yes. Common paths: $150 Development or Growth strategy → $1,999 Product MVP or Growth sprint → $3,999/mo Development Scale or Growth Scale. Pause or cancel either Scale plan anytime. Hourly ($100–150) covers work outside packages.",
+    a: "Yes. Common paths: $150 Development or Growth strategy → $1,999 Product MVP or Growth sprint → $3,999/mo Development Scale or Growth Scale. Pause or cancel either Scale plan anytime. Hourly ($100–$150) covers work outside packages.",
   },
   {
-    q: "What does $100–150/h cover?",
+    q: "What does $100–$150/h cover?",
     a: "Time-and-materials when a package isn’t the right fit — implementation, integrations, growth experiments, reviews, and iteration billed as we go.",
   },
   {

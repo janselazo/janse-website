@@ -78,20 +78,20 @@ export default function Footer() {
                 X / Twitter
               </a>
               <a
-                href="https://github.com/janselazo"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-text-secondary transition-colors hover:text-accent"
-              >
-                GitHub
-              </a>
-              <a
                 href="https://linkedin.com/in/janselazo"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-text-secondary transition-colors hover:text-accent"
               >
                 LinkedIn
+              </a>
+              <a
+                href="https://github.com/janselazo"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-text-secondary transition-colors hover:text-accent"
+              >
+                GitHub
               </a>
             </div>
           </div>
