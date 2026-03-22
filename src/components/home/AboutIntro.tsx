@@ -12,10 +12,12 @@ export default function AboutIntro() {
         transition={{ duration: 0.5 }}
         className="text-center"
       >
-        <p className="text-lg leading-relaxed text-text-secondary sm:text-xl">
+        <h2 className="heading-display text-xl font-bold leading-snug tracking-tight text-text-primary sm:text-2xl">
           Most agencies build what you ask for. We build what you need to win.
-          From concept to launch, every decision is made with growth in mind
-          — so your product doesn&apos;t just work, it scales.{" "}
+        </h2>
+        <p className="mt-5 text-lg leading-relaxed text-text-secondary sm:text-xl">
+          From concept to launch, every decision is made with growth in mind —
+          so your product doesn&apos;t just work, it scales.{" "}
           <span className="font-medium text-text-primary">
             First working version in 2 weeks.
           </span>
