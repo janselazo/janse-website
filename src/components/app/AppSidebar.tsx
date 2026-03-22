@@ -9,7 +9,6 @@ import {
   GanttChart,
   Users,
   BarChart3,
-  UserSearch,
   Building2,
   Calendar,
   Settings,
@@ -28,8 +27,7 @@ const workspaceNav = [
 ];
 
 const crmNav = [
-  { href: "/leads", label: "Leads", icon: UserSearch },
-  { href: "/clients", label: "Clients", icon: Building2 },
+  { href: "/leads", label: "Clients", icon: Building2 },
   { href: "/calendar", label: "Appointments", icon: Calendar },
 ];
 

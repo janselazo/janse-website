@@ -118,9 +118,14 @@ export default function LeadsView({ leads }: { leads: Lead[] }) {
     <div>
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <h1 className="heading-display text-2xl font-bold text-text-primary">
-          Leads
-        </h1>
+        <div>
+          <h1 className="heading-display text-2xl font-bold text-text-primary">
+            Clients
+          </h1>
+          <p className="mt-1 text-sm text-text-secondary">
+            Companies and contacts you work with
+          </p>
+        </div>
         <div className="flex items-center gap-2">
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary/50" />
@@ -137,7 +142,7 @@ export default function LeadsView({ leads }: { leads: Lead[] }) {
             onClick={() => setModalOpen(true)}
             className="shrink-0 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accent-hover"
           >
-            + Add Lead
+            + Add Client
           </button>
         </div>
       </div>
@@ -161,7 +166,7 @@ export default function LeadsView({ leads }: { leads: Lead[] }) {
           ))}
         </div>
         <span className="text-sm text-text-secondary">
-          {filtered.length} leads
+          {filtered.length} clients
         </span>
       </div>
 
@@ -189,7 +194,7 @@ export default function LeadsView({ leads }: { leads: Lead[] }) {
         )}
       </div>
 
-      {/* New Lead Modal */}
+      {/* New Client Modal */}
       {modalOpen && (
         <NewLeadModal onClose={() => setModalOpen(false)} />
       )}
@@ -201,7 +206,7 @@ function LeadsTable({ leads }: { leads: Lead[] }) {
   if (leads.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-border bg-white py-16 text-center text-sm text-text-secondary">
-        No leads found.
+        No clients found.
       </div>
     );
   }
@@ -336,7 +341,7 @@ function NewLeadModal({ onClose }: { onClose: () => void }) {
           id="new-lead-title"
           className="text-sm font-bold uppercase tracking-wider text-text-secondary"
         >
-          New Lead
+          New Client
         </h2>
 
         {error && (
@@ -395,7 +400,7 @@ function NewLeadModal({ onClose }: { onClose: () => void }) {
               disabled={pending}
               className="rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-hover disabled:opacity-60"
             >
-              {pending ? "Saving…" : "Add lead"}
+              {pending ? "Saving…" : "Add client"}
             </button>
             <button
               type="button"
