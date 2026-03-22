@@ -11,6 +11,9 @@ const AGENCY_APP_PREFIXES = [
   "/projects",
   "/calendar",
   "/settings",
+  "/timeline",
+  "/team",
+  "/capacity",
 ];
 
 function isAuthPath(pathname: string) {
@@ -21,10 +24,6 @@ function isAgencyAppPath(pathname: string) {
   return AGENCY_APP_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`)
   );
-}
-
-function isPortalPath(pathname: string) {
-  return pathname === "/portal" || pathname.startsWith("/portal/");
 }
 
 export async function updateSession(request: NextRequest) {
@@ -59,7 +58,7 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  if ((isAgencyAppPath(pathname) || isPortalPath(pathname)) && !user) {
+  if (isAgencyAppPath(pathname) && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);

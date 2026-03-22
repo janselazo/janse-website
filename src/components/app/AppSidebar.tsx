@@ -1,32 +1,43 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
-  Users,
-  Building2,
   FolderKanban,
+  GanttChart,
+  Users,
+  BarChart3,
+  UserSearch,
+  Building2,
   Calendar,
   Settings,
   LogOut,
-  ExternalLink,
+  ChevronDown,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { projects, teams } from "@/lib/crm/mock-data";
 
-const nav = [
+const workspaceNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/leads", label: "Leads", icon: Users },
-  { href: "/clients", label: "Clients", icon: Building2 },
   { href: "/projects", label: "Projects", icon: FolderKanban },
-  { href: "/calendar", label: "Calendar", icon: Calendar },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/timeline", label: "Timeline", icon: GanttChart },
+  { href: "/team", label: "Team", icon: Users },
+  { href: "/capacity", label: "Capacity", icon: BarChart3 },
+];
+
+const crmNav = [
+  { href: "/leads", label: "Leads", icon: UserSearch },
+  { href: "/clients", label: "Clients", icon: Building2 },
+  { href: "/calendar", label: "Appointments", icon: Calendar },
 ];
 
 export default function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [projectsOpen, setProjectsOpen] = useState(true);
+  const [teamsOpen, setTeamsOpen] = useState(true);
 
   async function signOut() {
     try {
@@ -41,42 +52,76 @@ export default function AppSidebar() {
 
   return (
     <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-white">
-      <div className="border-b border-border px-4 py-5">
-        <Link
-          href="/dashboard"
-          className="text-sm font-bold tracking-tight text-text-primary"
-        >
-          Agency CRM
-        </Link>
-        <p className="mt-0.5 text-xs text-text-secondary">Internal</p>
-      </div>
-      <nav className="flex flex-1 flex-col gap-0.5 p-2">
-        {nav.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(`${href}/`);
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-                active
-                  ? "bg-accent/10 text-accent"
-                  : "text-text-secondary hover:bg-surface hover:text-text-primary"
-              }`}
-            >
+      <div className="flex-1 overflow-y-auto">
+        {/* Workspace */}
+        <NavGroup label="Workspace">
+          {workspaceNav.map(({ href, label, icon: Icon }) => (
+            <NavLink key={href} href={href} active={isActive(pathname, href)}>
               <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
               {label}
-            </Link>
-          );
-        })}
-      </nav>
-      <div className="border-t border-border p-2">
-        <Link
-          href="/portal"
-          className="mb-1 flex items-center gap-2 rounded-xl px-3 py-2 text-xs text-text-secondary hover:bg-surface hover:text-text-primary"
+            </NavLink>
+          ))}
+        </NavGroup>
+
+        {/* CRM */}
+        <NavGroup label="CRM">
+          {crmNav.map(({ href, label, icon: Icon }) => (
+            <NavLink key={href} href={href} active={isActive(pathname, href)}>
+              <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+              {label}
+            </NavLink>
+          ))}
+        </NavGroup>
+
+        {/* Projects list */}
+        <CollapsibleGroup
+          label="Projects"
+          open={projectsOpen}
+          onToggle={() => setProjectsOpen(!projectsOpen)}
         >
-          <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-          Client portal preview
-        </Link>
+          {projects.map((p) => (
+            <NavLink
+              key={p.id}
+              href={`/projects/${p.id}`}
+              active={pathname === `/projects/${p.id}`}
+            >
+              <span
+                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: p.color }}
+              />
+              <span className="truncate">{p.title}</span>
+            </NavLink>
+          ))}
+        </CollapsibleGroup>
+
+        {/* Teams list */}
+        <CollapsibleGroup
+          label="Teams"
+          open={teamsOpen}
+          onToggle={() => setTeamsOpen(!teamsOpen)}
+        >
+          {teams.map((t) => (
+            <NavLink
+              key={t.id}
+              href={`/team?t=${t.id}`}
+              active={false}
+            >
+              <span
+                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: t.color }}
+              />
+              <span className="truncate">{t.name}</span>
+            </NavLink>
+          ))}
+        </CollapsibleGroup>
+      </div>
+
+      {/* Bottom */}
+      <div className="border-t border-border p-2">
+        <NavLink href="/settings" active={isActive(pathname, "/settings")}>
+          <Settings className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+          Settings
+        </NavLink>
         <Link
           href="/"
           className="mb-1 block rounded-xl px-3 py-2 text-xs text-text-secondary hover:bg-surface hover:text-text-primary"
@@ -93,5 +138,69 @@ export default function AppSidebar() {
         </button>
       </div>
     </aside>
+  );
+}
+
+function isActive(pathname: string, href: string) {
+  if (href === "/projects") return pathname === "/projects";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function NavGroup({ children }: { label?: string; children: React.ReactNode }) {
+  return (
+    <div className="px-2 pt-3">
+      <nav className="flex flex-col gap-0.5">{children}</nav>
+    </div>
+  );
+}
+
+function CollapsibleGroup({
+  label,
+  open,
+  onToggle,
+  children,
+}: {
+  label: string;
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="px-2 pt-4">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="mb-1 flex w-full items-center gap-1 px-3 text-[10px] font-bold uppercase tracking-widest text-text-secondary/60 hover:text-text-secondary"
+      >
+        {label}
+        <ChevronDown
+          className={`ml-auto h-3 w-3 transition-transform ${open ? "" : "-rotate-90"}`}
+        />
+      </button>
+      {open && <nav className="flex flex-col gap-0.5">{children}</nav>}
+    </div>
+  );
+}
+
+function NavLink({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+        active
+          ? "bg-accent/10 text-accent"
+          : "text-text-secondary hover:bg-surface hover:text-text-primary"
+      }`}
+    >
+      {children}
+    </Link>
   );
 }

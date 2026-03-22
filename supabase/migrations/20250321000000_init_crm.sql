@@ -141,125 +141,83 @@ alter table public.transaction enable row level security;
 alter table public.goal enable row level security;
 alter table public.profiles enable row level security;
 
--- Helper: is agency staff
+-- Helper: check role without triggering RLS on profiles (avoids infinite recursion)
+create or replace function public.is_agency_staff()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid()
+      and role in ('agency_admin', 'agency_member')
+  );
+$$;
+
 -- Policies: agency_admin / agency_member — full CRUD on internal tables
 create policy "agency_all_client"
   on public.client for all
   using (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid()
-        and p.role in ('agency_admin', 'agency_member')
-    )
+    public.is_agency_staff()
   )
   with check (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid()
-        and p.role in ('agency_admin', 'agency_member')
-    )
+    public.is_agency_staff()
   );
 
 create policy "agency_all_lead"
   on public.lead for all
   using (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid()
-        and p.role in ('agency_admin', 'agency_member')
-    )
+    public.is_agency_staff()
   )
   with check (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid()
-        and p.role in ('agency_admin', 'agency_member')
-    )
+    public.is_agency_staff()
   );
 
 create policy "agency_all_project"
   on public.project for all
   using (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid()
-        and p.role in ('agency_admin', 'agency_member')
-    )
+    public.is_agency_staff()
   )
   with check (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid()
-        and p.role in ('agency_admin', 'agency_member')
-    )
+    public.is_agency_staff()
   );
 
 create policy "agency_all_task"
   on public.task for all
   using (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid()
-        and p.role in ('agency_admin', 'agency_member')
-    )
+    public.is_agency_staff()
   )
   with check (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid()
-        and p.role in ('agency_admin', 'agency_member')
-    )
+    public.is_agency_staff()
   );
 
 create policy "agency_all_appointment"
   on public.appointment for all
   using (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid()
-        and p.role in ('agency_admin', 'agency_member')
-    )
+    public.is_agency_staff()
   )
   with check (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid()
-        and p.role in ('agency_admin', 'agency_member')
-    )
+    public.is_agency_staff()
   );
 
 create policy "agency_all_transaction"
   on public.transaction for all
   using (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid()
-        and p.role in ('agency_admin', 'agency_member')
-    )
+    public.is_agency_staff()
   )
   with check (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid()
-        and p.role in ('agency_admin', 'agency_member')
-    )
+    public.is_agency_staff()
   );
 
 create policy "agency_all_goal"
   on public.goal for all
   using (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid()
-        and p.role in ('agency_admin', 'agency_member')
-    )
+    public.is_agency_staff()
   )
   with check (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid()
-        and p.role in ('agency_admin', 'agency_member')
-    )
+    public.is_agency_staff()
   );
 
 -- Client: read own projects
@@ -302,9 +260,5 @@ create policy "profiles_update_own"
 create policy "agency_select_profiles"
   on public.profiles for select
   using (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid()
-        and p.role in ('agency_admin', 'agency_member')
-    )
+    public.is_agency_staff()
   );

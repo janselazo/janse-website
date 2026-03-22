@@ -21,9 +21,21 @@ type Row = {
   ends_at: string;
 };
 
+type ViewTab = "upcoming" | "calendar" | "all";
+
 function formatForDatetimeLocal(d: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function formatDateTime(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 function defaultNextHourWindow() {
@@ -39,8 +51,9 @@ const inputClass =
   "w-full rounded-xl border border-border bg-white px-3 py-2 text-sm text-text-primary outline-none focus:border-accent focus:ring-2 focus:ring-accent/15";
 
 export default function CrmCalendar({ configured }: { configured: boolean }) {
-  const [events, setEvents] = useState<EventInput[]>([]);
+  const [rows, setRows] = useState<Row[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<ViewTab>("calendar");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -63,17 +76,8 @@ export default function CrmCalendar({ configured }: { configured: boolean }) {
         setLoadError(qErr.message);
         return;
       }
-      const rows = (data ?? []) as Row[];
       setLoadError(null);
-      setEvents(
-        rows.map((r) => ({
-          id: r.id,
-          title: r.title,
-          start: r.starts_at,
-          end: r.ends_at,
-          extendedProps: { description: r.description ?? "" },
-        }))
-      );
+      setRows((data ?? []) as Row[]);
     } catch (e) {
       setLoadError(e instanceof Error ? e.message : "Failed to load");
     }
@@ -82,6 +86,21 @@ export default function CrmCalendar({ configured }: { configured: boolean }) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const events: EventInput[] = useMemo(
+    () =>
+      rows.map((r) => ({
+        id: r.id,
+        title: r.title,
+        start: r.starts_at,
+        end: r.ends_at,
+        extendedProps: { description: r.description ?? "" },
+      })),
+    [rows]
+  );
+
+  const now = new Date();
+  const upcomingRows = rows.filter((r) => new Date(r.starts_at) >= now);
 
   const plugins = useMemo(
     () => [dayGridPlugin, timeGridPlugin, interactionPlugin],
@@ -111,9 +130,7 @@ export default function CrmCalendar({ configured }: { configured: boolean }) {
       info.event.end ?? new Date(start.getTime() + 60 * 60 * 1000);
     setEditingId(info.event.id);
     setTitle(info.event.title);
-    setDescription(
-      String(info.event.extendedProps.description ?? "")
-    );
+    setDescription(String(info.event.extendedProps.description ?? ""));
     setStartsLocal(formatForDatetimeLocal(start));
     setEndsLocal(formatForDatetimeLocal(end));
     setFormError(null);
@@ -181,49 +198,112 @@ export default function CrmCalendar({ configured }: { configured: boolean }) {
   if (!configured) {
     return (
       <p className="text-sm text-text-secondary">
-        Configure Supabase to use the calendar.
+        Configure Supabase to use appointments.
       </p>
     );
   }
 
+  const tabItems: { id: ViewTab; label: string }[] = [
+    { id: "upcoming", label: "Upcoming" },
+    { id: "calendar", label: "Calendar" },
+    { id: "all", label: "All" },
+  ];
+
   return (
-    <div className="crm-calendar rounded-2xl border border-border bg-white p-4 shadow-sm">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-text-secondary">
-          Drag on the calendar to create, or click an event to edit.
-        </p>
+    <div>
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="heading-display text-2xl font-bold text-text-primary">
+            Appointments
+          </h1>
+          <p className="mt-1 text-sm text-text-secondary">
+            Manage first calls, consultations, deliveries, and follow-ups
+          </p>
+        </div>
         <button
           type="button"
           onClick={() => openNew()}
-          className="rounded-xl bg-accent px-4 py-2 text-xs font-semibold text-white hover:bg-accent-hover"
+          className="shrink-0 rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-accent-hover"
         >
-          New appointment
+          + New Appointment
         </button>
       </div>
-      {loadError ? (
-        <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
+
+      {/* Stats */}
+      <p className="mt-3 text-sm text-text-secondary">
+        {upcomingRows.length} upcoming · {rows.length} total
+      </p>
+
+      {/* View toggle */}
+      <div className="mt-4 inline-flex rounded-lg border border-border bg-surface/50 p-0.5">
+        {tabItems.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+              activeTab === tab.id
+                ? "bg-white text-text-primary shadow-sm"
+                : "text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {loadError && (
+        <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
           {loadError}
         </p>
-      ) : null}
+      )}
 
-      <FullCalendar
-        plugins={plugins}
-        initialView="dayGridMonth"
-        headerToolbar={{
-          left: "prev,next today",
-          center: "title",
-          right: "dayGridMonth,timeGridWeek,timeGridDay",
-        }}
-        height="auto"
-        events={events}
-        selectable
-        selectMirror
-        select={onSelect}
-        eventClick={onEventClick}
-        nowIndicator
-      />
+      {/* Content */}
+      <div className="mt-6">
+        {activeTab === "calendar" && (
+          <div className="appointments-calendar rounded-2xl border border-border bg-white shadow-sm">
+            <FullCalendar
+              plugins={plugins}
+              initialView="dayGridMonth"
+              headerToolbar={{
+                left: "prev",
+                center: "title",
+                right: "next",
+              }}
+              height="auto"
+              events={events}
+              selectable
+              selectMirror
+              select={onSelect}
+              eventClick={onEventClick}
+              nowIndicator
+              dayMaxEvents={3}
+              eventDisplay="block"
+              eventColor="#2563eb"
+            />
+          </div>
+        )}
 
-      {modalOpen ? (
+        {activeTab === "upcoming" && (
+          <AppointmentList
+            items={upcomingRows}
+            emptyMessage="No upcoming appointments."
+            onEdit={openEditFromRow}
+          />
+        )}
+
+        {activeTab === "all" && (
+          <AppointmentList
+            items={rows}
+            emptyMessage="No appointments yet."
+            onEdit={openEditFromRow}
+          />
+        )}
+      </div>
+
+      {/* Modal */}
+      {modalOpen && (
         <div
           className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 p-4 sm:items-center"
           onClick={() => setModalOpen(false)}
@@ -243,11 +323,11 @@ export default function CrmCalendar({ configured }: { configured: boolean }) {
             >
               {editingId ? "Edit appointment" : "New appointment"}
             </h2>
-            {formError ? (
+            {formError && (
               <p className="mt-3 text-sm text-red-700" role="alert">
                 {formError}
               </p>
-            ) : null}
+            )}
             <form onSubmit={onSubmit} className="mt-4 space-y-3">
               <div>
                 <label className="mb-1 block text-xs font-medium text-text-secondary">
@@ -312,7 +392,7 @@ export default function CrmCalendar({ configured }: { configured: boolean }) {
                 >
                   Cancel
                 </button>
-                {editingId ? (
+                {editingId && (
                   <button
                     type="button"
                     onClick={() => void onDelete()}
@@ -321,12 +401,66 @@ export default function CrmCalendar({ configured }: { configured: boolean }) {
                   >
                     Delete
                   </button>
-                ) : null}
+                )}
               </div>
             </form>
           </div>
         </div>
-      ) : null}
+      )}
     </div>
+  );
+
+  function openEditFromRow(row: Row) {
+    setEditingId(row.id);
+    setTitle(row.title);
+    setDescription(row.description ?? "");
+    setStartsLocal(formatForDatetimeLocal(new Date(row.starts_at)));
+    setEndsLocal(formatForDatetimeLocal(new Date(row.ends_at)));
+    setFormError(null);
+    setModalOpen(true);
+  }
+}
+
+function AppointmentList({
+  items,
+  emptyMessage,
+  onEdit,
+}: {
+  items: Row[];
+  emptyMessage: string;
+  onEdit: (row: Row) => void;
+}) {
+  if (items.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-border bg-white py-16 text-center text-sm text-text-secondary">
+        {emptyMessage}
+      </div>
+    );
+  }
+
+  return (
+    <ul className="divide-y divide-border rounded-2xl border border-border bg-white shadow-sm">
+      {items.map((row) => (
+        <li key={row.id}>
+          <button
+            type="button"
+            onClick={() => onEdit(row)}
+            className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-surface/50"
+          >
+            <div>
+              <p className="font-medium text-text-primary">{row.title}</p>
+              {row.description && (
+                <p className="mt-0.5 text-sm text-text-secondary line-clamp-1">
+                  {row.description}
+                </p>
+              )}
+            </div>
+            <span className="shrink-0 text-sm text-text-secondary">
+              {formatDateTime(row.starts_at)}
+            </span>
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }

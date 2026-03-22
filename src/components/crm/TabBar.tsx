@@ -1,0 +1,39 @@
+"use client";
+
+export interface Tab {
+  id: string;
+  label: string;
+}
+
+interface TabBarProps {
+  tabs: Tab[];
+  activeTab: string;
+  onTabChange: (id: string) => void;
+}
+
+export default function TabBar({ tabs, activeTab, onTabChange }: TabBarProps) {
+  return (
+    <div className="flex gap-1 border-b border-border">
+      {tabs.map((tab) => {
+        const active = tab.id === activeTab;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => onTabChange(tab.id)}
+            className={`relative px-4 py-2.5 text-sm font-medium transition-colors ${
+              active
+                ? "text-text-primary"
+                : "text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            {tab.label}
+            {active && (
+              <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-accent" />
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}

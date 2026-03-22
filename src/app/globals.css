@@ -152,3 +152,77 @@ body {
 .heading-display {
   letter-spacing: -0.02em;
 }
+
+/* Appointments calendar — clean minimal overrides */
+.appointments-calendar {
+  --fc-border-color: var(--color-border);
+  --fc-today-bg-color: transparent;
+  --fc-neutral-bg-color: transparent;
+  --fc-page-bg-color: transparent;
+  --fc-event-bg-color: var(--color-accent);
+  --fc-event-border-color: var(--color-accent);
+  --fc-event-text-color: #fff;
+  overflow: hidden;
+}
+.appointments-calendar .fc {
+  font-family: inherit;
+}
+.appointments-calendar .fc-toolbar {
+  padding: 1rem 1.25rem;
+  margin: 0 !important;
+  border-bottom: 1px solid var(--color-border);
+}
+.appointments-calendar .fc-toolbar-title {
+  font-size: 1rem !important;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+.appointments-calendar .fc-button {
+  background: none !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text-secondary) !important;
+  box-shadow: none !important;
+  border-radius: 0.5rem !important;
+  padding: 0.25rem 0.5rem !important;
+  font-size: 0.8rem !important;
+}
+.appointments-calendar .fc-button:hover {
+  background: var(--color-surface) !important;
+  color: var(--color-text-primary) !important;
+}
+.appointments-calendar .fc-col-header-cell {
+  padding: 0.5rem 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-secondary);
+}
+.appointments-calendar .fc-daygrid-day-number {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  padding: 0.35rem 0.5rem;
+}
+.appointments-calendar .fc-day-today .fc-daygrid-day-number {
+  background: var(--color-accent);
+  color: #fff;
+  border-radius: 9999px;
+  width: 1.6rem;
+  height: 1.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0.25rem;
+  padding: 0;
+}
+.appointments-calendar .fc-daygrid-day-frame {
+  min-height: 5.5rem;
+}
+.appointments-calendar .fc-event {
+  border-radius: 0.375rem !important;
+  font-size: 0.7rem !important;
+  padding: 1px 4px !important;
+}
+.appointments-calendar .fc-day-other .fc-daygrid-day-number {
+  opacity: 0.35;
+}
