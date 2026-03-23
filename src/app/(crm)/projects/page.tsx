@@ -7,14 +7,31 @@ import {
   teams,
   PLAN_COLORS,
   PLAN_LABELS,
+  LEAD_PROJECT_TYPE_OPTIONS,
   type PlanStage,
   type MockProject,
+  type MockTeam,
 } from "@/lib/crm/mock-data";
+import { Calendar, ChevronDown } from "lucide-react";
 import KanbanBoard, { type KanbanColumn } from "@/components/crm/KanbanBoard";
 
 type ViewMode = "kanban" | "table";
 
 const planOrder: PlanStage[] = ["pipeline", "planning", "mvp", "growth"];
+
+const FALLBACK_TEAM: MockTeam = {
+  id: "team-general",
+  name: "Unassigned",
+  color: "#94a3b8",
+};
+
+function teamSelectOptions(): MockTeam[] {
+  return teams.length > 0 ? teams : [FALLBACK_TEAM];
+}
+
+function resolveTeam(teamId: string): MockTeam | undefined {
+  return teams.find((t) => t.id === teamId) ?? (teamId === FALLBACK_TEAM.id ? FALLBACK_TEAM : undefined);
+}
 
 export default function ProjectsPage() {
   const [view, setView] = useState<ViewMode>("kanban");
@@ -94,7 +111,7 @@ export default function ProjectsPage() {
           className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm text-text-primary"
         >
           <option value="all">All Team</option>
-          {teams.map((t) => (
+          {teamSelectOptions().map((t) => (
             <option key={t.id} value={t.id}>
               {t.name}
             </option>
@@ -129,7 +146,7 @@ export default function ProjectsPage() {
 }
 
 function ProjectCard({ project }: { project: MockProject }) {
-  const team = teams.find((t) => t.id === project.teamId);
+  const team = resolveTeam(project.teamId);
   return (
     <Link
       href={`/projects/${project.id}`}
@@ -137,7 +154,13 @@ function ProjectCard({ project }: { project: MockProject }) {
     >
       <p className="text-sm font-medium text-text-primary">{project.title}</p>
       <p className="mt-1 text-xs text-text-secondary">
-        {team?.name ?? "—"} · {project.sprintCount} sprints · {project.taskCount} tasks
+        {project.projectType ? (
+          <span className="mr-1 font-medium text-text-primary/80">
+            {project.projectType}
+          </span>
+        ) : null}
+        {team?.name ?? "—"} · {project.sprintCount} sprints · {project.taskCount}{" "}
+        tasks
       </p>
     </Link>
   );
@@ -150,6 +173,7 @@ function ProjectTable({ projects: items }: { projects: MockProject[] }) {
         <thead>
           <tr className="border-b border-border">
             <th className="px-4 py-3 font-semibold text-text-secondary">Project</th>
+            <th className="px-4 py-3 font-semibold text-text-secondary">Type</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">Plan</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">Team</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">End Date</th>
@@ -159,7 +183,7 @@ function ProjectTable({ projects: items }: { projects: MockProject[] }) {
         </thead>
         <tbody className="divide-y divide-border">
           {items.map((p) => {
-            const team = teams.find((t) => t.id === p.teamId);
+            const team = resolveTeam(p.teamId);
             return (
               <tr key={p.id} className="hover:bg-surface/50">
                 <td className="px-4 py-3">
@@ -169,6 +193,9 @@ function ProjectTable({ projects: items }: { projects: MockProject[] }) {
                   >
                     {p.title}
                   </Link>
+                </td>
+                <td className="px-4 py-3 text-text-secondary">
+                  {p.projectType ?? "—"}
                 </td>
                 <td className="px-4 py-3">
                   <span
@@ -198,10 +225,22 @@ function NewProjectModal({
   onClose: () => void;
   onAdd: (p: MockProject) => void;
 }) {
+  const teamOpts = teamSelectOptions();
   const [title, setTitle] = useState("");
   const [plan, setPlan] = useState<PlanStage>("pipeline");
-  const [teamId, setTeamId] = useState(teams[0]?.id ?? "");
+  const [teamId, setTeamId] = useState(teamOpts[0]?.id ?? FALLBACK_TEAM.id);
+  const [projectType, setProjectType] = useState<string>(
+    LEAD_PROJECT_TYPE_OPTIONS[0]
+  );
   const [endDate, setEndDate] = useState("");
+
+  const fieldClass =
+    "w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-text-primary shadow-sm outline-none transition-[box-shadow,border-color] placeholder:text-text-secondary/45 focus:border-accent focus:ring-2 focus:ring-accent/15";
+
+  const selectClass = `${fieldClass} cursor-pointer appearance-none pr-10`;
+
+  const labelClass =
+    "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-text-primary";
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -211,6 +250,7 @@ function NewProjectModal({
       title: title.trim(),
       plan,
       teamId,
+      projectType,
       color: "#6366f1",
       expectedEndDate: endDate || "TBD",
       sprintCount: 0,
@@ -220,80 +260,164 @@ function NewProjectModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/45 p-4 backdrop-blur-[2px] sm:items-center"
       onClick={onClose}
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
+      role="presentation"
+      tabIndex={-1}
     >
-      <form
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-project-title"
+        className="max-h-[min(92vh,44rem)] w-full max-w-lg overflow-y-auto rounded-2xl border border-border bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
-        onSubmit={handleSubmit}
-        className="w-full max-w-md rounded-2xl border border-border bg-white p-6 shadow-xl"
       >
-        <h2 className="text-lg font-semibold text-text-primary">New Project</h2>
-
-        <label className="mt-4 block text-sm font-medium text-text-secondary">
-          Project Name
-        </label>
-        <input
-          autoFocus
-          required
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none"
-          placeholder="e.g. Acme Redesign"
-        />
-
-        <label className="mt-4 block text-sm font-medium text-text-secondary">
-          Status
-        </label>
-        <select
-          value={plan}
-          onChange={(e) => setPlan(e.target.value as PlanStage)}
-          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
-        >
-          {planOrder.map((p) => (
-            <option key={p} value={p}>{PLAN_LABELS[p]}</option>
-          ))}
-        </select>
-
-        <label className="mt-4 block text-sm font-medium text-text-secondary">
-          Team
-        </label>
-        <select
-          value={teamId}
-          onChange={(e) => setTeamId(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
-        >
-          {teams.map((t) => (
-            <option key={t.id} value={t.id}>{t.name}</option>
-          ))}
-        </select>
-
-        <label className="mt-4 block text-sm font-medium text-text-secondary">
-          Expected End Date
-        </label>
-        <input
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
-        />
-
-        <div className="mt-6 flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg px-4 py-2 text-sm text-text-secondary hover:text-text-primary"
+        <form onSubmit={handleSubmit} className="p-6 sm:p-8">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-text-secondary">
+            Create
+          </p>
+          <h2
+            id="new-project-title"
+            className="mt-1 font-sans text-xl font-bold tracking-tight text-text-primary"
           >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-accent-hover"
-          >
-            Add Project
-          </button>
-        </div>
-      </form>
+            New project
+          </h2>
+          <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
+            Name your build, set status and type, then pick a target date or leave
+            it open as TBD.
+          </p>
+
+          <div className="mt-8 space-y-5">
+            <div>
+              <label htmlFor="np-title" className={labelClass}>
+                Project name
+              </label>
+              <input
+                id="np-title"
+                autoFocus
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className={fieldClass}
+                placeholder="e.g. Acme Redesign"
+              />
+            </div>
+
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div>
+                <label htmlFor="np-status" className={labelClass}>
+                  Status
+                </label>
+                <div className="relative">
+                  <select
+                    id="np-status"
+                    value={plan}
+                    onChange={(e) => setPlan(e.target.value as PlanStage)}
+                    className={selectClass}
+                  >
+                    {planOrder.map((p) => (
+                      <option key={p} value={p}>
+                        {PLAN_LABELS[p]}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary/55"
+                    aria-hidden
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="np-team" className={labelClass}>
+                  Team
+                </label>
+                <div className="relative">
+                  <select
+                    id="np-team"
+                    value={teamId}
+                    onChange={(e) => setTeamId(e.target.value)}
+                    className={selectClass}
+                  >
+                    {teamOpts.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary/55"
+                    aria-hidden
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="np-type" className={labelClass}>
+                Project type
+              </label>
+              <div className="relative">
+                <select
+                  id="np-type"
+                  value={projectType}
+                  onChange={(e) => setProjectType(e.target.value)}
+                  className={selectClass}
+                >
+                  {LEAD_PROJECT_TYPE_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary/55"
+                  aria-hidden
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="np-end" className={labelClass}>
+                Expected end date
+              </label>
+              <div className="relative">
+                <Calendar
+                  className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary/55"
+                  aria-hidden
+                />
+                <input
+                  id="np-end"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className={`${fieldClass} pl-10 font-mono text-[13px] tabular-nums [color-scheme:light] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-2 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:hover:opacity-100`}
+                />
+              </div>
+              <p className="mt-1.5 text-xs text-text-secondary">
+                Optional. If you skip this, the project shows as{" "}
+                <span className="font-medium text-text-primary">TBD</span>.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-col-reverse gap-2 border-t border-border pt-6 sm:flex-row sm:justify-end sm:gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border border-border bg-white px-5 py-2.5 text-sm font-medium text-text-primary shadow-sm transition-colors hover:bg-surface"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-hover"
+            >
+              Add project
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

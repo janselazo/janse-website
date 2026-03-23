@@ -20,6 +20,8 @@ export interface MockProject {
   title: string;
   plan: PlanStage;
   teamId: string;
+  /** Web App, Mobile App, etc. (optional for older seed rows) */
+  projectType?: string;
   color: string;
   expectedEndDate: string;
   figmaLink?: string;

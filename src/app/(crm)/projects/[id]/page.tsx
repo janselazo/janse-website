@@ -54,7 +54,9 @@ export default function ProjectDetailPage({ params }: Props) {
     );
   }
 
-  const team = getTeamById(project.teamId);
+  const team =
+    getTeamById(project.teamId) ??
+    (project.teamId === "team-general" ? { name: "Unassigned" } : undefined);
   const sprints = getSprintsForProject(project.id);
   const currentSprint = sprints.find((s) => s.isCurrent) ?? sprints[0];
 
@@ -90,6 +92,13 @@ export default function ProjectDetailPage({ params }: Props) {
               {PLAN_LABELS[project.plan]}
             </span>
           </MetaField>
+          {project.projectType ? (
+            <MetaField label="Type">
+              <span className="font-medium text-text-primary">
+                {project.projectType}
+              </span>
+            </MetaField>
+          ) : null}
           <MetaField label="Team">
             <span className="font-medium text-text-primary">{team?.name ?? "—"}</span>
           </MetaField>

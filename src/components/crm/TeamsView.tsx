@@ -2,12 +2,16 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Search,
   FolderKanban,
   Mail,
   ChevronDown,
   X,
+  Settings,
+  LogIn,
+  LogOut,
 } from "lucide-react";
 import {
   type MockTeamMember,
@@ -20,6 +24,8 @@ import {
   PLAN_COLORS,
   SUGGESTED_TEAM_TAGS,
 } from "@/lib/crm/mock-data";
+import { createClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 const ROLE_COLORS: Record<string, string> = {
   "Founder / Lead": "bg-amber-100 text-amber-800",
@@ -100,6 +106,24 @@ export default function TeamsView({
   const [tagFilter, setTagFilter] = useState<string>("all");
   const [modalOpen, setModalOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured()) {
+      setSignedIn(false);
+      return;
+    }
+    const supabase = createClient();
+    void supabase.auth.getUser().then(({ data: { user } }) => {
+      setSignedIn(Boolean(user));
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSignedIn(Boolean(session?.user));
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   const tagsInUse = useMemo(() => {
     const s = new Set<string>();
@@ -198,8 +222,9 @@ export default function TeamsView({
           return (
             <div
               key={m.id}
-              className="rounded-2xl border border-border bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+              className="relative rounded-2xl border border-border bg-white p-5 pt-12 shadow-sm transition-shadow hover:shadow-md"
             >
+              <MemberCardAccountMenu signedIn={signedIn} memberName={m.name} />
               {/* Top row: avatar, name, role */}
               <div className="flex items-start gap-3">
                 <span
@@ -324,6 +349,98 @@ export default function TeamsView({
           onAdd={handleAdd}
         />
       )}
+    </div>
+  );
+}
+
+function MemberCardAccountMenu({
+  signedIn,
+  memberName,
+}: {
+  signedIn: boolean;
+  memberName: string;
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+
+  async function signOut() {
+    setOpen(false);
+    try {
+      if (isSupabaseConfigured()) {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+      }
+    } catch {
+      /* ignore */
+    }
+    router.push("/login?next=/team");
+    router.refresh();
+  }
+
+  return (
+    <div ref={rootRef} className="absolute right-3 top-3 z-10">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-label={`Account and settings for ${memberName}`}
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1 rounded-lg border border-border/80 bg-white/90 px-2 py-1.5 text-xs font-medium text-text-secondary shadow-sm backdrop-blur-sm transition-colors hover:border-accent/30 hover:bg-surface hover:text-text-primary"
+      >
+        <Settings className="h-3.5 w-3.5" aria-hidden />
+        Settings
+        <ChevronDown
+          className={`h-3 w-3 opacity-60 transition-transform ${open ? "rotate-180" : ""}`}
+          aria-hidden
+        />
+      </button>
+      {open ? (
+        <div
+          className="absolute right-0 mt-1.5 w-48 overflow-hidden rounded-xl border border-border bg-white py-1 shadow-lg"
+          role="menu"
+        >
+          <Link
+            href="/settings"
+            role="menuitem"
+            className="flex items-center gap-2 px-3 py-2.5 text-sm text-text-primary hover:bg-surface"
+            onClick={() => setOpen(false)}
+          >
+            <Settings className="h-4 w-4 text-text-secondary" aria-hidden />
+            Account settings
+          </Link>
+          {signedIn ? (
+            <button
+              type="button"
+              role="menuitem"
+              className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-text-primary hover:bg-surface"
+              onClick={() => void signOut()}
+            >
+              <LogOut className="h-4 w-4 text-text-secondary" aria-hidden />
+              Sign out
+            </button>
+          ) : (
+            <Link
+              href="/login?next=/team"
+              role="menuitem"
+              className="flex items-center gap-2 px-3 py-2.5 text-sm text-text-primary hover:bg-surface"
+              onClick={() => setOpen(false)}
+            >
+              <LogIn className="h-4 w-4 text-text-secondary" aria-hidden />
+              Log in
+            </Link>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

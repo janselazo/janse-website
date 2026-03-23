@@ -58,7 +58,7 @@ export default function AppSidebar() {
   }
 
   return (
-    <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-white">
+    <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-white dark:border-zinc-800 dark:bg-zinc-900">
       <div className="flex-1 overflow-y-auto">
         {/* Brand */}
         <div className="flex items-center gap-2.5 border-b border-border px-4 py-3.5">
@@ -138,17 +138,17 @@ export default function AppSidebar() {
       </div>
 
       {/* Bottom */}
-      <div className="border-t border-border p-2">
+      <div className="flex flex-col gap-0.5 border-t border-border p-2">
+        <Link
+          href="/"
+          className="block rounded-xl px-3 py-2 text-xs text-text-secondary hover:bg-surface hover:text-text-primary"
+        >
+          ← Marketing site
+        </Link>
         <NavLink href="/settings" active={isActive(pathname, "/settings")}>
           <Settings className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
           Settings
         </NavLink>
-        <Link
-          href="/"
-          className="mb-1 block rounded-xl px-3 py-2 text-xs text-text-secondary hover:bg-surface hover:text-text-primary"
-        >
-          ← Marketing site
-        </Link>
         <button
           type="button"
           onClick={() => void signOut()}
