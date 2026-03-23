@@ -84,6 +84,16 @@ body {
     0 20px 50px rgba(0, 0, 0, 0.08);
 }
 
+/* CRM shell — soft lift in dark mode (avoids flat black) */
+html.dark .crm-dark-bg {
+  background-color: #09090b;
+  background-image: radial-gradient(
+    ellipse 115% 75% at 50% -32%,
+    rgba(63, 63, 70, 0.38),
+    transparent 58%
+  );
+}
+
 /* Subtle grid for CTA bands */
 .scifi-grid {
   background-image:

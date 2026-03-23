@@ -110,6 +110,7 @@ export async function updateLead(formData: FormData) {
   const dealContactEmail = String(
     formData.get("deal_contact_email") ?? ""
   ).trim();
+  const dealWebsite = String(formData.get("deal_website") ?? "").trim();
 
   const allowedDealStages = [
     "prospect",
@@ -143,6 +144,7 @@ export async function updateLead(formData: FormData) {
       stage: dealStage,
       expected_close: expectedClose,
       contact_email: dealContactEmail || null,
+      website: dealWebsite || null,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "lead_id" }

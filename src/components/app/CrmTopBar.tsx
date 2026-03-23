@@ -93,7 +93,7 @@ export default function CrmTopBar({
   const avatarUrl = initialUser?.avatarUrl ?? null;
 
   return (
-    <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center justify-end gap-1 border-b border-border bg-white px-3 dark:border-zinc-800 dark:bg-zinc-900 sm:gap-2 sm:px-6">
+    <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center justify-end gap-1 border-b border-border bg-white/95 px-3 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-900/90 dark:backdrop-blur-md sm:gap-2 sm:px-6">
       <div className="flex items-center gap-1 sm:gap-2">
         <button
           type="button"
@@ -139,7 +139,7 @@ export default function CrmTopBar({
           onClick={() => setOpen((v) => !v)}
           className="flex items-center gap-2 rounded-full bg-white py-1 pl-1 pr-2 shadow-sm transition-colors hover:bg-surface/80 dark:bg-zinc-800 dark:hover:bg-zinc-800/90"
         >
-          <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full bg-surface">
+          <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full bg-surface dark:bg-zinc-700">
             {avatarUrl ? (
               <Image
                 src={avatarUrl}
@@ -150,13 +150,13 @@ export default function CrmTopBar({
                 unoptimized
               />
             ) : (
-              <span className="flex h-full w-full items-center justify-center text-[10px] font-bold text-text-secondary">
+              <span className="flex h-full w-full items-center justify-center text-[10px] font-bold text-text-secondary dark:text-zinc-200">
                 {initialsFrom(initialUser?.fullName, initialUser?.email ?? null)}
               </span>
             )}
           </span>
           <ChevronDown
-            className={`h-4 w-4 text-text-secondary transition-transform ${open ? "rotate-180" : ""}`}
+            className={`h-4 w-4 text-text-secondary transition-transform dark:text-zinc-400 ${open ? "rotate-180" : ""}`}
             aria-hidden
           />
         </button>

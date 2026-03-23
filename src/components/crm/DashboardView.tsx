@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Bar,
@@ -37,6 +37,38 @@ import {
 } from "@/lib/crm/mock-data";
 import { getCompletions } from "@/lib/crm/playbook-store";
 import type { DailyMoneyPoint } from "@/components/crm/DashboardCharts";
+
+const dashCard =
+  "rounded-2xl border border-border bg-white shadow-sm dark:border-zinc-800/70 dark:bg-zinc-900/60 dark:shadow-none dark:ring-1 dark:ring-white/[0.05]";
+
+function useDashboardChartTheme() {
+  const [dark, setDark] = useState(false);
+  useEffect(() => {
+    const root = document.documentElement;
+    const sync = () => setDark(root.classList.contains("dark"));
+    sync();
+    const mo = new MutationObserver(sync);
+    mo.observe(root, { attributes: true, attributeFilter: ["class"] });
+    return () => mo.disconnect();
+  }, []);
+  return dark
+    ? {
+        grid: "#27272a",
+        tick: "#a1a1aa",
+        tooltipBg: "#18181b",
+        tooltipBorder: "#3f3f46",
+        tooltipColor: "#e4e4e7",
+        legendColor: "#a1a1aa",
+      }
+    : {
+        grid: "#e8ecf1",
+        tick: "#5c6370",
+        tooltipBg: "#ffffff",
+        tooltipBorder: "#e8ecf1",
+        tooltipColor: "#111827",
+        legendColor: "#5c6370",
+      };
+}
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -90,11 +122,11 @@ function buildFunnel(): FunnelStage[] {
   const revenue = dealsClosed.reduce((s, d) => s + d.value, 0);
 
   return [
-    { label: "Leads", count: leadCount, value: 0, color: "#3b82f6", bg: "bg-blue-50" },
-    { label: "Appointments", count: appointmentCount, value: 0, color: "#8b5cf6", bg: "bg-violet-50" },
-    { label: "Qualified", count: qualifiedCount, value: 0, color: "#10b981", bg: "bg-emerald-50" },
-    { label: "Deals Closed", count: closedCount, value: 0, color: "#f59e0b", bg: "bg-amber-50" },
-    { label: "Revenue", count: 0, value: revenue, color: "#10b981", bg: "bg-emerald-50" },
+    { label: "Leads", count: leadCount, value: 0, color: "#3b82f6", bg: "bg-blue-50 dark:bg-blue-500/12" },
+    { label: "Appointments", count: appointmentCount, value: 0, color: "#8b5cf6", bg: "bg-violet-50 dark:bg-violet-500/12" },
+    { label: "Qualified", count: qualifiedCount, value: 0, color: "#10b981", bg: "bg-emerald-50 dark:bg-emerald-500/12" },
+    { label: "Deals Closed", count: closedCount, value: 0, color: "#f59e0b", bg: "bg-amber-50 dark:bg-amber-500/12" },
+    { label: "Revenue", count: 0, value: revenue, color: "#10b981", bg: "bg-emerald-50 dark:bg-emerald-500/12" },
   ];
 }
 
@@ -168,6 +200,7 @@ export default function DashboardView({
   const heatmap = buildDealsHeatmap();
   const profit = revenueWeek - expensesWeek;
 
+  const chartTheme = useDashboardChartTheme();
   const completions = getCompletions();
   const totalActivities = playbookCategories.reduce(
     (s, c) => s + c.activities.length, 0
@@ -194,16 +227,16 @@ export default function DashboardView({
       {/* Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="heading-display text-2xl font-bold text-text-primary">
+          <h1 className="heading-display text-2xl font-bold text-text-primary dark:text-zinc-50">
             Dashboard
           </h1>
-          <p className="text-sm text-text-secondary">
+          <p className="text-sm text-text-secondary dark:text-zinc-400">
             This week · at-a-glance
           </p>
         </div>
         <Link
           href="/leads"
-          className="text-sm font-medium text-accent hover:underline"
+          className="text-sm font-medium text-accent hover:underline dark:text-blue-400 dark:hover:text-blue-300"
         >
           Manage leads →
         </Link>
@@ -219,39 +252,39 @@ export default function DashboardView({
       </div>
 
       {/* Daily Playbook summary */}
-      <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-text-secondary/60">
+      <div className={`${dashCard} p-5`}>
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-text-secondary/60 dark:text-zinc-500">
           Daily Playbook
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-6">
           <div className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-text-secondary" />
+            <Target className="h-5 w-5 text-text-secondary dark:text-zinc-500" />
             <div>
-              <p className="text-xs text-text-secondary">Today&apos;s Progress</p>
-              <p className="text-sm font-semibold text-text-primary">
+              <p className="text-xs text-text-secondary dark:text-zinc-500">Today&apos;s Progress</p>
+              <p className="text-sm font-semibold text-text-primary dark:text-zinc-100">
                 {completedActivities} / {totalActivities}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Flame className="h-5 w-5 text-amber-500" />
+            <Flame className="h-5 w-5 text-amber-500 dark:text-amber-400" />
             <div>
-              <p className="text-xs text-text-secondary">Points Today</p>
-              <p className="text-sm font-semibold text-text-primary">
+              <p className="text-xs text-text-secondary dark:text-zinc-500">Points Today</p>
+              <p className="text-sm font-semibold text-text-primary dark:text-zinc-100">
                 {earnedPoints} / {totalPoints}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-text-secondary" />
+            <Clock className="h-5 w-5 text-text-secondary dark:text-zinc-500" />
             <div>
-              <p className="text-xs text-text-secondary">Current Streak</p>
-              <p className="text-sm font-semibold text-text-primary">{completedActivities > 0 ? "1" : "0"} days</p>
+              <p className="text-xs text-text-secondary dark:text-zinc-500">Current Streak</p>
+              <p className="text-sm font-semibold text-text-primary dark:text-zinc-100">{completedActivities > 0 ? "1" : "0"} days</p>
             </div>
           </div>
           <Link
             href="/prospecting"
-            className="ml-auto flex items-center gap-1 text-sm font-medium text-accent hover:underline"
+            className="ml-auto flex items-center gap-1 text-sm font-medium text-accent hover:underline dark:text-blue-400 dark:hover:text-blue-300"
           >
             Open Playbook <ArrowRight className="h-3.5 w-3.5" />
           </Link>
@@ -259,12 +292,12 @@ export default function DashboardView({
       </div>
 
       {/* Sales Funnel */}
-      <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+      <div className={`${dashCard} p-5`}>
         <div className="flex items-center justify-between">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-text-secondary/60">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-text-secondary/60 dark:text-zinc-500">
             Sales Funnel
           </p>
-          <span className="text-xs text-text-secondary">All time</span>
+          <span className="text-xs text-text-secondary dark:text-zinc-500">All time</span>
         </div>
         <div className="mt-5 flex items-center justify-between gap-2">
           {funnel.map((stage, i) => (
@@ -282,11 +315,11 @@ export default function DashboardView({
                       : stage.count}
                   </span>
                 </div>
-                <p className="mt-1.5 text-xs font-medium text-text-primary">
+                <p className="mt-1.5 text-xs font-medium text-text-primary dark:text-zinc-200">
                   {stage.label}
                 </p>
                 {i < funnel.length - 1 && stage.count > 0 && (
-                  <p className="text-[10px] text-text-secondary">
+                  <p className="text-[10px] text-text-secondary dark:text-zinc-500">
                     {convRate(
                       stage.count || 1,
                       funnel[i + 1].count || funnel[i + 1].value
@@ -296,7 +329,7 @@ export default function DashboardView({
                 )}
               </div>
               {i < funnel.length - 1 && (
-                <div className="mx-1 h-px w-6 bg-border lg:w-10" />
+                <div className="mx-1 h-px w-6 bg-border dark:bg-zinc-700 lg:w-10" />
               )}
             </div>
           ))}
@@ -306,42 +339,42 @@ export default function DashboardView({
       {/* Next Appointments + Tasks */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Next Appointments */}
-        <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+        <div className={`${dashCard} p-5`}>
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-text-secondary/60">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-text-secondary/60 dark:text-zinc-500">
               Next Appointments
             </p>
             <Link
               href="/calendar"
-              className="text-xs font-medium text-accent hover:underline"
+              className="text-xs font-medium text-accent hover:underline dark:text-blue-400 dark:hover:text-blue-300"
             >
               View all →
             </Link>
           </div>
           <div className="mt-6 flex flex-col items-center gap-2 py-6 text-center">
-            <Calendar className="h-8 w-8 text-text-secondary/30" />
-            <p className="text-sm text-text-secondary">
+            <Calendar className="h-8 w-8 text-text-secondary/30 dark:text-zinc-600" />
+            <p className="text-sm text-text-secondary dark:text-zinc-400">
               No upcoming appointments
             </p>
           </div>
         </div>
 
         {/* Tasks */}
-        <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+        <div className={`${dashCard} p-5`}>
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-text-secondary/60">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-text-secondary/60 dark:text-zinc-500">
               Tasks
             </p>
             <Link
               href="/prospecting"
-              className="text-xs font-medium text-accent hover:underline"
+              className="text-xs font-medium text-accent hover:underline dark:text-blue-400 dark:hover:text-blue-300"
             >
               View all →
             </Link>
           </div>
           <div className="mt-4 space-y-3">
             {activeTasks.length === 0 ? (
-              <p className="py-6 text-center text-sm text-text-secondary">
+              <p className="py-6 text-center text-sm text-text-secondary dark:text-zinc-400">
                 No active tasks
               </p>
             ) : (
@@ -352,14 +385,14 @@ export default function DashboardView({
                   <div
                     key={t.id}
                     className={`flex items-start gap-3 rounded-xl px-3 py-2.5 ${
-                      isOverdue ? "bg-red-50/60" : ""
+                      isOverdue ? "bg-red-50/60 dark:bg-red-950/35" : ""
                     }`}
                   >
-                    <span className={isOverdue ? "text-red-400" : "text-text-secondary/40"}>
+                    <span className={isOverdue ? "text-red-400 dark:text-red-400" : "text-text-secondary/40 dark:text-zinc-600"}>
                       {TASK_TYPE_ICONS[t.type]}
                     </span>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-text-primary">
+                      <p className="text-sm font-medium text-text-primary dark:text-zinc-100">
                         {t.title}
                       </p>
                       <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
@@ -369,7 +402,7 @@ export default function DashboardView({
                           </span>
                         )}
                         {isOverdue && (
-                          <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-700">
+                          <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-700 dark:bg-red-950/80 dark:text-red-300">
                             Overdue by {diff} day{diff > 1 ? "s" : ""}
                           </span>
                         )}
@@ -386,12 +419,12 @@ export default function DashboardView({
       {/* Leads & Appointments + Deals Activity */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Leads & Appointments chart */}
-        <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+        <div className={`${dashCard} p-5`}>
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-text-secondary/60">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-text-secondary/60 dark:text-zinc-500">
               Leads & Appointments
             </p>
-            <span className="text-xs text-text-secondary">This Month</span>
+            <span className="text-xs text-text-secondary dark:text-zinc-500">This Month</span>
           </div>
           <div className="mt-4 h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -399,11 +432,19 @@ export default function DashboardView({
                 data={leadsChartData}
                 margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e8ecf1" vertical={false} />
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#5c6370" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#5c6370" }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #e8ecf1", fontSize: 12 }} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: chartTheme.tick }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: chartTheme.tick }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: 12,
+                    border: `1px solid ${chartTheme.tooltipBorder}`,
+                    fontSize: 12,
+                    backgroundColor: chartTheme.tooltipBg,
+                    color: chartTheme.tooltipColor,
+                  }}
+                />
+                <Legend wrapperStyle={{ fontSize: 11, color: chartTheme.legendColor }} />
                 <Bar dataKey="appointments" name="Appointments" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={20} />
                 <Bar dataKey="leads" name="Leads" fill="#93c5fd" radius={[4, 4, 0, 0]} maxBarSize={20} />
               </BarChart>
@@ -412,26 +453,26 @@ export default function DashboardView({
         </div>
 
         {/* Deals Activity heatmap */}
-        <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+        <div className={`${dashCard} p-5`}>
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-text-secondary/60">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-text-secondary/60 dark:text-zinc-500">
               Deals Activity
             </p>
-            <span className="text-xs text-text-secondary">This Week</span>
+            <span className="text-xs text-text-secondary dark:text-zinc-500">This Week</span>
           </div>
           <div className="mt-4 overflow-x-auto">
             <div className="grid min-w-[400px]" style={{ gridTemplateColumns: `auto repeat(${heatmap.hours.length}, 1fr)` }}>
               {/* Header row */}
               <div />
               {heatmap.hours.map((h) => (
-                <div key={h} className="px-1 pb-1 text-center text-[10px] text-text-secondary">
+                <div key={h} className="px-1 pb-1 text-center text-[10px] text-text-secondary dark:text-zinc-500">
                   {h}
                 </div>
               ))}
               {/* Data rows */}
               {heatmap.days.map((day) => (
                 <Fragment key={day}>
-                  <div className="flex items-center pr-2 text-xs text-text-secondary">
+                  <div className="flex items-center pr-2 text-xs text-text-secondary dark:text-zinc-500">
                     {day}
                   </div>
                   {heatmap.hours.map((hour) => {
@@ -444,12 +485,12 @@ export default function DashboardView({
                         key={`${day}-${hour}`}
                         className={`m-0.5 h-6 rounded ${
                           v === 0
-                            ? "bg-gray-50"
+                            ? "bg-gray-50 dark:bg-zinc-800/70"
                             : v === 1
-                              ? "bg-emerald-100"
+                              ? "bg-emerald-100 dark:bg-emerald-900/50"
                               : v <= 3
-                                ? "bg-emerald-300"
-                                : "bg-emerald-500"
+                                ? "bg-emerald-300 dark:bg-emerald-600/70"
+                                : "bg-emerald-500 dark:bg-emerald-500"
                         }`}
                       />
                     );
@@ -457,12 +498,12 @@ export default function DashboardView({
                 </Fragment>
               ))}
             </div>
-            <div className="mt-2 flex items-center justify-end gap-1 text-[10px] text-text-secondary">
+            <div className="mt-2 flex items-center justify-end gap-1 text-[10px] text-text-secondary dark:text-zinc-500">
               <span>Less</span>
-              <span className="h-3 w-3 rounded bg-gray-50" />
-              <span className="h-3 w-3 rounded bg-emerald-100" />
-              <span className="h-3 w-3 rounded bg-emerald-300" />
-              <span className="h-3 w-3 rounded bg-emerald-500" />
+              <span className="h-3 w-3 rounded bg-gray-50 dark:bg-zinc-800/70" />
+              <span className="h-3 w-3 rounded bg-emerald-100 dark:bg-emerald-900/50" />
+              <span className="h-3 w-3 rounded bg-emerald-300 dark:bg-emerald-600/70" />
+              <span className="h-3 w-3 rounded bg-emerald-500 dark:bg-emerald-500" />
               <span>More</span>
             </div>
           </div>
@@ -471,18 +512,27 @@ export default function DashboardView({
 
       {/* Revenue vs Expenses */}
       {!hasErrors && chartData.length > 0 && (
-        <div className="rounded-2xl border border-border bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
+        <div className={`${dashCard} p-6`}>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary dark:text-zinc-400">
             Revenue vs expenses (last 7 days)
           </h2>
           <div className="mt-4 h-[280px] w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e8ecf1" vertical={false} />
-                <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#5c6370" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#5c6370" }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v}`} />
-                <Tooltip formatter={(value) => fmt(Number(value))} contentStyle={{ borderRadius: 12, border: "1px solid #e8ecf1", fontSize: 12 }} />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 11, fill: chartTheme.tick }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: chartTheme.tick }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v}`} />
+                <Tooltip
+                  formatter={(value) => fmt(Number(value))}
+                  contentStyle={{
+                    borderRadius: 12,
+                    border: `1px solid ${chartTheme.tooltipBorder}`,
+                    fontSize: 12,
+                    backgroundColor: chartTheme.tooltipBg,
+                    color: chartTheme.tooltipColor,
+                  }}
+                />
+                <Legend wrapperStyle={{ fontSize: 12, color: chartTheme.legendColor }} />
                 <Bar dataKey="revenue" name="Revenue" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={28} />
                 <Bar dataKey="expense" name="Expenses" fill="#0ea5e9" radius={[4, 4, 0, 0]} maxBarSize={28} />
               </BarChart>
@@ -498,9 +548,19 @@ export default function DashboardView({
 
 function KpiCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className={`rounded-2xl border border-border bg-white p-5 shadow-sm ${accent ? "ring-1 ring-accent/20" : ""}`}>
-      <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary">{label}</p>
-      <p className={`mt-2 text-2xl font-bold tracking-tight ${accent ? "text-accent" : "text-text-primary"}`}>{value}</p>
+    <div
+      className={`${dashCard} p-5 ${accent ? "ring-1 ring-accent/20 dark:ring-blue-400/25" : ""}`}
+    >
+      <p className="text-xs font-semibold uppercase tracking-wider text-text-secondary dark:text-zinc-500">
+        {label}
+      </p>
+      <p
+        className={`mt-2 text-2xl font-bold tracking-tight ${
+          accent ? "text-accent dark:text-blue-400" : "text-text-primary dark:text-zinc-50"
+        }`}
+      >
+        {value}
+      </p>
     </div>
   );
 }

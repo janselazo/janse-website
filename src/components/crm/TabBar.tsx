@@ -13,13 +13,22 @@ interface TabBarProps {
 
 export default function TabBar({ tabs, activeTab, onTabChange }: TabBarProps) {
   return (
-    <div className="flex gap-1 border-b border-border">
+    <div
+      className="flex gap-1 border-b border-border"
+      role="tablist"
+      aria-label="Project sections"
+    >
       {tabs.map((tab) => {
         const active = tab.id === activeTab;
         return (
           <button
             key={tab.id}
+            id={`${tab.id}-tab`}
             type="button"
+            role="tab"
+            aria-selected={active}
+            aria-controls={`${tab.id}-panel`}
+            tabIndex={active ? 0 : -1}
             onClick={() => onTabChange(tab.id)}
             className={`relative px-4 py-2.5 text-sm font-medium transition-colors ${
               active

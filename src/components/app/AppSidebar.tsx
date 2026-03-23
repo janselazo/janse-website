@@ -58,14 +58,14 @@ export default function AppSidebar() {
   }
 
   return (
-    <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-white dark:border-zinc-800 dark:bg-zinc-900">
+    <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-white dark:border-zinc-800/90 dark:bg-zinc-900 dark:shadow-[inset_-1px_0_0_0_rgba(255,255,255,0.04)]">
       <div className="flex-1 overflow-y-auto">
         {/* Brand */}
-        <div className="flex items-center gap-2.5 border-b border-border px-4 py-3.5">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-sm font-bold text-blue-600 ring-1 ring-border">
+        <div className="flex items-center gap-2.5 border-b border-border px-4 py-3.5 dark:border-zinc-800/80">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-sm font-bold text-blue-600 ring-1 ring-border dark:bg-zinc-800 dark:text-blue-400 dark:ring-zinc-700/80">
             J
           </span>
-          <span className="text-sm font-semibold text-text-primary">
+          <span className="text-sm font-semibold text-text-primary dark:text-zinc-100">
             AI Product Studio
           </span>
         </div>
@@ -138,10 +138,10 @@ export default function AppSidebar() {
       </div>
 
       {/* Bottom */}
-      <div className="flex flex-col gap-0.5 border-t border-border p-2">
+      <div className="flex flex-col gap-0.5 border-t border-border p-2 dark:border-zinc-800/80">
         <Link
           href="/"
-          className="block rounded-xl px-3 py-2 text-xs text-text-secondary hover:bg-surface hover:text-text-primary"
+          className="block rounded-xl px-3 py-2 text-xs text-text-secondary hover:bg-surface hover:text-text-primary dark:text-zinc-500 dark:hover:bg-zinc-800/70 dark:hover:text-zinc-200"
         >
           ← Marketing site
         </Link>
@@ -152,7 +152,7 @@ export default function AppSidebar() {
         <button
           type="button"
           onClick={() => void signOut()}
-          className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-surface hover:text-text-primary"
+          className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-surface hover:text-text-primary dark:text-zinc-400 dark:hover:bg-zinc-800/70 dark:hover:text-zinc-100"
         >
           <LogOut className="h-4 w-4" aria-hidden />
           Sign out
@@ -170,7 +170,7 @@ function isActive(pathname: string, href: string) {
 function NavGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="px-2 pt-6">
-      <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-widest text-text-secondary/50">
+      <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-widest text-text-secondary/50 dark:text-zinc-500">
         {label}
       </p>
       <nav className="flex flex-col gap-0.5">{children}</nav>
@@ -194,7 +194,7 @@ function CollapsibleGroup({
       <button
         type="button"
         onClick={onToggle}
-        className="mb-1 flex w-full items-center gap-1 px-3 text-[10px] font-bold uppercase tracking-widest text-text-secondary/60 hover:text-text-secondary"
+        className="mb-1 flex w-full items-center gap-1 px-3 text-[10px] font-bold uppercase tracking-widest text-text-secondary/60 hover:text-text-secondary dark:text-zinc-500 dark:hover:text-zinc-400"
       >
         {label}
         <ChevronDown
@@ -220,8 +220,8 @@ function NavLink({
       href={href}
       className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
         active
-          ? "bg-accent/10 text-accent"
-          : "text-text-secondary hover:bg-surface hover:text-text-primary"
+          ? "bg-accent/10 text-accent dark:bg-blue-500/12 dark:text-blue-400"
+          : "text-text-secondary hover:bg-surface hover:text-text-primary dark:text-zinc-400 dark:hover:bg-zinc-800/70 dark:hover:text-zinc-100"
       }`}
     >
       {children}

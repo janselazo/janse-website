@@ -20,10 +20,16 @@ export interface MockProject {
   title: string;
   plan: PlanStage;
   teamId: string;
+  /** Display name for the squad (free text); takes precedence over teamId lookup */
+  teamName?: string | null;
   /** Web App, Mobile App, etc. (optional for older seed rows) */
   projectType?: string;
   color: string;
   expectedEndDate: string;
+  /** Optional project budget (USD) */
+  budget?: number | null;
+  /** Client or product site */
+  website?: string | null;
   figmaLink?: string;
   lovableLink?: string;
   slackChannel?: string;
@@ -144,6 +150,44 @@ export const teams: MockTeam[] = [];
 
 export const teamMembers: MockTeamMember[] = [];
 
+/** URL-safe slug for tag-based team ids (`tag-{slug}`), aligned with TeamsView */
+export function slugTeamTag(tag: string) {
+  const s = tag
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return s || "group";
+}
+
+function colorForTeamTagLabel(tag: string) {
+  let h = 0;
+  for (let i = 0; i < tag.length; i += 1) {
+    h = tag.charCodeAt(i) + ((h << 5) - h);
+  }
+  const hue = Math.abs(h) % 360;
+  return `hsl(${hue} 52% 42%)`;
+}
+
+const UNASSIGNED_TEAM: MockTeam = {
+  id: "team-general",
+  name: "Unassigned",
+  color: "#94a3b8",
+};
+
+/**
+ * Options for the New Project / filters team dropdown.
+ * Ids match TeamsView tag groups (`tag-{slug}`) so assignments stay consistent.
+ */
+export function getProjectTeamSelectOptions(): MockTeam[] {
+  const fromSuggested: MockTeam[] = SUGGESTED_TEAM_TAGS.map((name) => ({
+    id: `tag-${slugTeamTag(name)}`,
+    name,
+    color: colorForTeamTagLabel(name),
+  }));
+  return [UNASSIGNED_TEAM, ...fromSuggested];
+}
+
 export const projects: MockProject[] = [];
 
 export const sprints: MockSprint[] = [];
@@ -167,7 +211,30 @@ export function getTasksForSprint(sprintId: string) {
 }
 
 export function getTeamById(id: string) {
-  return teams.find((t) => t.id === id);
+  const fromSeed = teams.find((t) => t.id === id);
+  if (fromSeed) return fromSeed;
+  if (id === UNASSIGNED_TEAM.id) return UNASSIGNED_TEAM;
+  const fromSuggested = getProjectTeamSelectOptions().find((t) => t.id === id);
+  if (fromSuggested) return fromSuggested;
+  if (id.startsWith("tag-")) {
+    const slug = id.slice(4);
+    const name = slug
+      .split("-")
+      .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : ""))
+      .join(" ")
+      .trim();
+    const label = name || "Team";
+    return { id, name: label, color: colorForTeamTagLabel(label) };
+  }
+  return undefined;
+}
+
+/** Label shown in UI: saved team name, or legacy resolution from teamId */
+export function projectTeamDisplayName(p: MockProject): string {
+  const n = p.teamName?.trim();
+  if (n) return n;
+  if (!p.teamId || p.teamId === "team-general") return "Unassigned";
+  return getTeamById(p.teamId)?.name ?? "Unassigned";
 }
 
 export function getMemberById(id: string) {

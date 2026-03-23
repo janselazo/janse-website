@@ -1,28 +1,40 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import {
-  getProjectById,
-  getSprintsForProject,
-  getTasksForSprint,
-  getTeamById,
   getMemberById,
+  projectTeamDisplayName,
   PLAN_COLORS,
   PLAN_LABELS,
   TASK_STATUS_LABELS,
   TASK_STATUS_COLORS,
   type TaskStatus,
-  type MockTask,
+  type MockProject,
 } from "@/lib/crm/mock-data";
+import { getMergedProjectById } from "@/lib/crm/projects-storage";
+import { useProjectWorkspace } from "@/lib/crm/use-project-workspace";
+import { formatISODate } from "@/lib/crm/project-date-utils";
 import KanbanBoard, { type KanbanColumn } from "@/components/crm/KanbanBoard";
 import TabBar, { type Tab } from "@/components/crm/TabBar";
+import ProjectBacklogView from "@/components/crm/project/ProjectBacklogView";
+import ProjectRequestsView from "@/components/crm/project/ProjectRequestsView";
+import ProjectScopeView from "@/components/crm/project/ProjectScopeView";
+import ProjectMeetingsView from "@/components/crm/project/ProjectMeetingsView";
+import ProjectResourcesView from "@/components/crm/project/ProjectResourcesView";
+import ProjectGanttView from "@/components/crm/project/ProjectGanttView";
+import ProjectMilestonesView from "@/components/crm/project/ProjectMilestonesView";
+import type {
+  WorkspaceSprint,
+  WorkspaceTask,
+} from "@/lib/crm/project-workspace-types";
 
 const tabs: Tab[] = [
   { id: "sprint-board", label: "Sprint Board" },
   { id: "backlog", label: "Backlog" },
   { id: "requests", label: "Requests" },
-  { id: "timeline", label: "Timeline" },
+  { id: "milestones", label: "Milestones" },
+  { id: "gantt", label: "Gantt" },
   { id: "scope", label: "Scope Requirements" },
   { id: "meetings", label: "Meetings" },
   { id: "resources", label: "Resources" },
@@ -40,8 +52,52 @@ type Props = { params: Promise<{ id: string }> };
 
 export default function ProjectDetailPage({ params }: Props) {
   const { id } = use(params);
-  const project = getProjectById(id);
+  const [project, setProject] = useState<MockProject | null | undefined>(
+    undefined
+  );
   const [activeTab, setActiveTab] = useState("sprint-board");
+  const [sprintModalOpen, setSprintModalOpen] = useState(false);
+  const [sprintName, setSprintName] = useState("");
+  const [sprintMilestone, setSprintMilestone] = useState("Milestone 1");
+  const [sprintStart, setSprintStart] = useState(() =>
+    formatISODate(new Date())
+  );
+  const [sprintEnd, setSprintEnd] = useState(() => formatISODate(new Date()));
+
+  const {
+    workspace,
+    hydrated,
+    addSprint,
+    setCurrentSprint,
+    addTask,
+    updateTask,
+    addRequest,
+    updateRequestStatus,
+    addScopeSection,
+    addScopeLine,
+    addMeeting,
+    addResource,
+    deleteResource,
+  } = useProjectWorkspace(id);
+
+  useEffect(() => {
+    const load = () => setProject(getMergedProjectById(id) ?? null);
+    load();
+    window.addEventListener("crm-projects-changed", load);
+    window.addEventListener("storage", load);
+    return () => {
+      window.removeEventListener("crm-projects-changed", load);
+      window.removeEventListener("storage", load);
+    };
+  }, [id]);
+
+  if (project === undefined) {
+    return (
+      <div className="p-8">
+        <p className="text-sm text-text-secondary">Loading…</p>
+      </div>
+    );
+  }
 
   if (!project) {
     return (
@@ -54,31 +110,146 @@ export default function ProjectDetailPage({ params }: Props) {
     );
   }
 
-  const team =
-    getTeamById(project.teamId) ??
-    (project.teamId === "team-general" ? { name: "Unassigned" } : undefined);
-  const sprints = getSprintsForProject(project.id);
+  const teamLabel = projectTeamDisplayName(project);
+  const sprints = workspace.sprints;
   const currentSprint = sprints.find((s) => s.isCurrent) ?? sprints[0];
+  const sprintsInMilestone = currentSprint
+    ? sprints.filter((s) => s.milestone === currentSprint.milestone).length
+    : 0;
+
+  function submitCreateSprint(e: FormEvent) {
+    e.preventDefault();
+    if (!sprintName.trim()) return;
+    addSprint({
+      name: sprintName.trim(),
+      milestone: sprintMilestone.trim() || "Milestone",
+      startDate: sprintStart,
+      endDate: sprintEnd,
+      isCurrent: false,
+    });
+    setSprintModalOpen(false);
+    setSprintName("");
+  }
+
+  let panelContent: React.ReactNode = null;
+
+  if (!hydrated) {
+    panelContent = (
+      <p className="text-sm text-text-secondary">Loading workspace…</p>
+    );
+  } else if (activeTab === "sprint-board") {
+    panelContent =
+      currentSprint ? (
+        <SprintBoard
+          sprint={currentSprint}
+          sprintTasks={workspace.tasks.filter(
+            (t) => t.sprintId === currentSprint.id
+          )}
+          sprints={sprints}
+          sprintsInMilestone={sprintsInMilestone}
+          onSetCurrentSprint={setCurrentSprint}
+          onOpenCreateSprint={() => setSprintModalOpen(true)}
+          onAddTask={(status) => {
+            const title = window.prompt("Task title");
+            if (!title?.trim()) return;
+            addTask({
+              title: title.trim(),
+              status,
+              sprintId: currentSprint.id,
+            });
+          }}
+          onMoveTask={(taskId, _from, to) => {
+            updateTask(taskId, { status: to as TaskStatus });
+          }}
+        />
+      ) : (
+        <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-border bg-white py-16 dark:border-zinc-700 dark:bg-zinc-900">
+          <p className="text-sm text-text-secondary">
+            No sprints yet. Create one to use the sprint board.
+          </p>
+          <button
+            type="button"
+            onClick={() => setSprintModalOpen(true)}
+            className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white"
+          >
+            Create sprint
+          </button>
+        </div>
+      );
+  } else if (activeTab === "backlog") {
+    panelContent = (
+      <ProjectBacklogView
+        tasks={workspace.tasks}
+        sprints={sprints}
+        onAddTask={(input) => addTask({ ...input, sprintId: input.sprintId })}
+        onUpdateTask={updateTask}
+      />
+    );
+  } else if (activeTab === "requests") {
+    panelContent = (
+      <ProjectRequestsView
+        requests={workspace.requests}
+        onAdd={addRequest}
+        onUpdateStatus={updateRequestStatus}
+      />
+    );
+  } else if (activeTab === "milestones") {
+    panelContent = (
+      <ProjectMilestonesView
+        tasks={workspace.tasks}
+        onGoToGantt={() => setActiveTab("gantt")}
+      />
+    );
+  } else if (activeTab === "gantt") {
+    panelContent = (
+      <ProjectGanttView
+        tasks={workspace.tasks}
+        onAddTask={(title, status) =>
+          addTask({ title, status, sprintId: null })
+        }
+      />
+    );
+  } else if (activeTab === "scope") {
+    panelContent = (
+      <ProjectScopeView
+        sections={workspace.scopeSections}
+        onAddSection={addScopeSection}
+        onAddLine={addScopeLine}
+      />
+    );
+  } else if (activeTab === "meetings") {
+    panelContent = (
+      <ProjectMeetingsView meetings={workspace.meetings} onAdd={addMeeting} />
+    );
+  } else if (activeTab === "resources") {
+    panelContent = (
+      <ProjectResourcesView
+        resources={workspace.resources}
+        onAdd={addResource}
+        onDelete={deleteResource}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col">
-      {/* Breadcrumb */}
-      <div className="border-b border-border bg-white px-8 py-3 text-sm text-text-secondary">
+      <div className="border-b border-border bg-white px-8 py-3 text-sm text-text-secondary dark:border-zinc-700 dark:bg-zinc-900">
         <Link href="/projects" className="hover:text-accent">
           Projects
         </Link>
         <span className="mx-2">›</span>
-        <span className="font-medium text-text-primary">{project.title}</span>
+        <span className="font-medium text-text-primary dark:text-zinc-100">
+          {project.title}
+        </span>
       </div>
 
-      {/* Header */}
-      <div className="border-b border-border bg-white px-8 py-5">
+      <div className="border-b border-border bg-white px-8 py-5 dark:border-zinc-700 dark:bg-zinc-900">
         <div className="flex items-center gap-3">
           <span
             className="h-4 w-4 rounded-full"
             style={{ backgroundColor: project.color }}
           />
-          <h1 className="heading-display text-xl font-bold text-text-primary">
+          <h1 className="heading-display text-xl font-bold text-text-primary dark:text-zinc-100">
             {project.title}
           </h1>
         </div>
@@ -94,19 +265,48 @@ export default function ProjectDetailPage({ params }: Props) {
           </MetaField>
           {project.projectType ? (
             <MetaField label="Type">
-              <span className="font-medium text-text-primary">
+              <span className="font-medium text-text-primary dark:text-zinc-100">
                 {project.projectType}
               </span>
             </MetaField>
           ) : null}
-          <MetaField label="Team">
-            <span className="font-medium text-text-primary">{team?.name ?? "—"}</span>
+          <MetaField label="Team name">
+            <span className="font-medium text-text-primary dark:text-zinc-100">
+              {teamLabel}
+            </span>
           </MetaField>
           <MetaField label="Expected End Date">
-            <span className="font-medium text-text-primary">
+            <span className="font-medium text-text-primary dark:text-zinc-100">
               {project.expectedEndDate}
             </span>
           </MetaField>
+          {project.budget != null && project.budget > 0 ? (
+            <MetaField label="Budget">
+              <span className="font-medium text-text-primary dark:text-zinc-100">
+                {new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                  maximumFractionDigits: 0,
+                }).format(project.budget)}
+              </span>
+            </MetaField>
+          ) : null}
+          {project.website ? (
+            <MetaField label="Website">
+              <a
+                href={
+                  /^https?:\/\//i.test(project.website)
+                    ? project.website
+                    : `https://${project.website}`
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-accent hover:underline"
+              >
+                {project.website.replace(/^https?:\/\//i, "")}
+              </a>
+            </MetaField>
+          ) : null}
           {project.figmaLink && (
             <MetaField label="Figma Link">
               <span className="text-accent">Add</span>
@@ -125,43 +325,117 @@ export default function ProjectDetailPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="bg-white px-8">
+      <div className="bg-white px-8 dark:bg-zinc-900">
         <TabBar tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
 
-      {/* Tab content */}
-      <div className="flex-1 overflow-auto p-8">
-        {activeTab === "sprint-board" && currentSprint ? (
-          <SprintBoard
-            sprint={currentSprint}
-            projectId={project.id}
-            sprintsInMilestone={
-              sprints.filter((s) => s.milestone === currentSprint.milestone).length
-            }
-          />
-        ) : activeTab === "sprint-board" && !currentSprint ? (
-          <EmptyTab message="No sprints yet. Create one to get started." />
-        ) : (
-          <EmptyTab message={`${tabs.find((t) => t.id === activeTab)?.label ?? ""} content coming soon.`} />
-        )}
+      <div
+        className="flex-1 overflow-auto p-8"
+        role="tabpanel"
+        id={`${activeTab}-panel`}
+        aria-labelledby={`${activeTab}-tab`}
+      >
+        {panelContent}
       </div>
+
+      {sprintModalOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          role="presentation"
+          onClick={() => setSprintModalOpen(false)}
+        >
+          <form
+            className="w-full max-w-md rounded-2xl border border-border bg-white p-6 shadow-xl dark:border-zinc-700 dark:bg-zinc-900"
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={submitCreateSprint}
+          >
+            <h3 className="text-lg font-bold text-text-primary dark:text-zinc-100">
+              Create sprint
+            </h3>
+            <div className="mt-4 space-y-3">
+              <label className="block text-sm text-text-secondary">
+                Name
+                <input
+                  required
+                  value={sprintName}
+                  onChange={(e) => setSprintName(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-border px-3 py-2 dark:border-zinc-600 dark:bg-zinc-800"
+                  placeholder="Sprint 1"
+                />
+              </label>
+              <label className="block text-sm text-text-secondary">
+                Milestone
+                <input
+                  value={sprintMilestone}
+                  onChange={(e) => setSprintMilestone(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-border px-3 py-2 dark:border-zinc-600 dark:bg-zinc-800"
+                />
+              </label>
+              <label className="block text-sm text-text-secondary">
+                Start date
+                <input
+                  type="date"
+                  value={sprintStart}
+                  onChange={(e) => setSprintStart(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-border px-3 py-2 dark:border-zinc-600 dark:bg-zinc-800"
+                />
+              </label>
+              <label className="block text-sm text-text-secondary">
+                End date
+                <input
+                  type="date"
+                  value={sprintEnd}
+                  onChange={(e) => setSprintEnd(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-border px-3 py-2 dark:border-zinc-600 dark:bg-zinc-800"
+                />
+              </label>
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setSprintModalOpen(false)}
+                className="rounded-lg border border-border px-4 py-2 text-sm dark:border-zinc-600"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white"
+              >
+                Create
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
     </div>
   );
 }
 
 function SprintBoard({
   sprint,
-  projectId,
+  sprintTasks,
+  sprints,
   sprintsInMilestone,
+  onSetCurrentSprint,
+  onOpenCreateSprint,
+  onAddTask,
+  onMoveTask,
 }: {
-  sprint: (typeof import("@/lib/crm/mock-data"))["sprints"][number];
-  projectId: string;
+  sprint: WorkspaceSprint;
+  sprintTasks: WorkspaceTask[];
+  sprints: WorkspaceSprint[];
   sprintsInMilestone: number;
+  onSetCurrentSprint: (id: string) => void;
+  onOpenCreateSprint: () => void;
+  onAddTask: (status: TaskStatus) => void;
+  onMoveTask: (
+    taskId: string,
+    fromColumnId: string,
+    toColumnId: string
+  ) => void;
 }) {
-  const sprintTasks = getTasksForSprint(sprint.id);
-
-  const columns: KanbanColumn<MockTask>[] = statusOrder.map((status) => ({
+  const columns: KanbanColumn<WorkspaceTask>[] = statusOrder.map((status) => ({
     id: status,
     label: TASK_STATUS_LABELS[status],
     color: TASK_STATUS_COLORS[status],
@@ -171,31 +445,64 @@ function SprintBoard({
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-        <h2 className="text-lg font-bold text-text-primary">Sprint Board</h2>
-        <MetaField label="Current Sprint">
-          <span className="font-medium text-text-primary">{sprint.name}</span>
-        </MetaField>
+        <h2 className="text-lg font-bold text-text-primary dark:text-zinc-100">
+          Sprint Board
+        </h2>
+        {sprints.length > 1 ? (
+          <MetaField label="Sprint">
+            <select
+              value={sprint.id}
+              onChange={(e) => onSetCurrentSprint(e.target.value)}
+              className="rounded-lg border border-border bg-white px-2 py-1 text-sm font-medium dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+            >
+              {sprints.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </MetaField>
+        ) : (
+          <MetaField label="Current Sprint">
+            <span className="font-medium text-text-primary dark:text-zinc-100">
+              {sprint.name}
+            </span>
+          </MetaField>
+        )}
         <MetaField label="Expected End Date">
-          <span className="font-medium text-text-primary">{sprint.endDate}</span>
+          <span className="font-medium text-text-primary dark:text-zinc-100">
+            {sprint.endDate}
+          </span>
         </MetaField>
         <MetaField label="Milestone">
-          <span className="font-medium text-text-primary">{sprint.milestone} ›</span>
+          <span className="font-medium text-text-primary dark:text-zinc-100">
+            {sprint.milestone} ›
+          </span>
         </MetaField>
         <MetaField label="Sprints in Milestone">
-          <span className="font-medium text-text-primary">{sprintsInMilestone}</span>
+          <span className="font-medium text-text-primary dark:text-zinc-100">
+            {sprintsInMilestone}
+          </span>
         </MetaField>
       </div>
 
-      <div className="flex items-center gap-3 text-sm">
+      <div className="flex flex-wrap items-center gap-3 text-sm">
         <button
           type="button"
-          className="rounded-lg border border-border px-3 py-1.5 text-text-secondary hover:bg-surface"
+          onClick={onOpenCreateSprint}
+          className="rounded-lg bg-accent px-3 py-1.5 font-medium text-white hover:opacity-90"
+        >
+          Create sprint
+        </button>
+        <button
+          type="button"
+          className="rounded-lg border border-border px-3 py-1.5 text-text-secondary hover:bg-surface dark:border-zinc-600 dark:hover:bg-zinc-800"
         >
           Filter
         </button>
         <button
           type="button"
-          className="rounded-lg border border-border px-3 py-1.5 text-text-secondary hover:bg-surface"
+          className="rounded-lg border border-border px-3 py-1.5 text-text-secondary hover:bg-surface dark:border-zinc-600 dark:hover:bg-zinc-800"
         >
           Complete Sprint
         </button>
@@ -205,18 +512,21 @@ function SprintBoard({
         <KanbanBoard
           columns={columns}
           renderCard={(task) => <TaskCard task={task} />}
-          onAddNew={() => {}}
+          onAddNew={(columnId) => onAddTask(columnId as TaskStatus)}
+          onMove={(itemId, from, to) => onMoveTask(itemId, from, to)}
         />
       </div>
     </div>
   );
 }
 
-function TaskCard({ task }: { task: MockTask }) {
+function TaskCard({ task }: { task: WorkspaceTask }) {
   const assignee = task.assigneeId ? getMemberById(task.assigneeId) : null;
   return (
-    <div className="rounded-xl border border-border bg-white p-3 shadow-sm">
-      <p className="text-sm font-medium text-text-primary">{task.title}</p>
+    <div className="rounded-xl border border-border bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
+      <p className="text-sm font-medium text-text-primary dark:text-zinc-100">
+        {task.title}
+      </p>
       {assignee && (
         <div className="mt-2 flex items-center gap-1.5">
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent/10 text-[10px] font-bold text-accent">
@@ -229,19 +539,17 @@ function TaskCard({ task }: { task: MockTask }) {
   );
 }
 
-function MetaField({ label, children }: { label: string; children: React.ReactNode }) {
+function MetaField({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex items-center gap-1.5">
       <span className="text-text-secondary">{label}</span>
       {children}
-    </div>
-  );
-}
-
-function EmptyTab({ message }: { message: string }) {
-  return (
-    <div className="flex items-center justify-center rounded-2xl border border-dashed border-border bg-white py-20">
-      <p className="text-sm text-text-secondary">{message}</p>
     </div>
   );
 }

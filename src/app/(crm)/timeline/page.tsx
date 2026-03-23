@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { projects, sprints, getProjectById } from "@/lib/crm/mock-data";
+import { sprints } from "@/lib/crm/mock-data";
+import { getMergedProjectById } from "@/lib/crm/projects-storage";
 
 const DAY_WIDTH = 36;
 
@@ -39,7 +40,8 @@ export default function TimelinePage() {
     const projectIds = [...new Set(sprints.map((s) => s.projectId))];
     const rows = projectIds
       .map((pid) => {
-        const project = getProjectById(pid)!;
+        const project = getMergedProjectById(pid);
+        if (!project) return null;
         const projectSprints = sprints
           .filter((s) => s.projectId === pid)
           .map((s) => ({
@@ -52,6 +54,7 @@ export default function TimelinePage() {
         );
         return { project, sprints: projectSprints, earliestStart };
       })
+      .filter((row): row is NonNullable<typeof row> => row != null)
       .sort((a, b) =>
         sortBy === "date"
           ? a.earliestStart - b.earliestStart

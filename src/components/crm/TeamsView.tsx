@@ -23,9 +23,14 @@ import {
   PLAN_LABELS,
   PLAN_COLORS,
   SUGGESTED_TEAM_TAGS,
+  slugTeamTag,
 } from "@/lib/crm/mock-data";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import {
+  readStoredTeamMembers,
+  writeStoredTeamMembers,
+} from "@/lib/crm/team-members-storage";
 
 const ROLE_COLORS: Record<string, string> = {
   "Founder / Lead": "bg-amber-100 text-amber-800",
@@ -40,19 +45,10 @@ function getRoleClasses(role: string) {
   return ROLE_COLORS[role] ?? "bg-gray-100 text-gray-700";
 }
 
-function slugTag(tag: string) {
-  const s = tag
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-  return s || "group";
-}
-
 /** Keeps project teamId in sync when using tag-based groups */
 function tagsToTeamId(tags: string[]) {
   if (tags.length === 0) return "team-general";
-  return `tag-${slugTag(tags[0])}`;
+  return `tag-${slugTeamTag(tags[0])}`;
 }
 
 function colorForTagLabel(tag: string) {
@@ -99,14 +95,25 @@ export default function TeamsView({
 }: {
   members: MockTeamMember[];
 }) {
-  const [members, setMembers] = useState(() =>
-    initialMembers.map(normalizeMember)
-  );
+  const [members, setMembers] = useState(() => {
+    const stored = readStoredTeamMembers();
+    if (stored.length > 0) return stored.map(normalizeMember);
+    return initialMembers.map(normalizeMember);
+  });
   const [search, setSearch] = useState("");
   const [tagFilter, setTagFilter] = useState<string>("all");
   const [modalOpen, setModalOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [signedIn, setSignedIn] = useState(false);
+  const skipPersistRef = useRef(true);
+
+  useEffect(() => {
+    if (skipPersistRef.current) {
+      skipPersistRef.current = false;
+      return;
+    }
+    writeStoredTeamMembers(members);
+  }, [members]);
 
   useEffect(() => {
     if (!isSupabaseConfigured()) {

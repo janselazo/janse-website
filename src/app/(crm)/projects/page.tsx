@@ -1,48 +1,74 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   projects as initialProjects,
-  teams,
+  projectTeamDisplayName,
   PLAN_COLORS,
   PLAN_LABELS,
   LEAD_PROJECT_TYPE_OPTIONS,
   type PlanStage,
   type MockProject,
-  type MockTeam,
 } from "@/lib/crm/mock-data";
-import { Calendar, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import KanbanBoard, { type KanbanColumn } from "@/components/crm/KanbanBoard";
+import CrmPopoverDateField from "@/components/crm/CrmPopoverDateField";
+import { useCrmTeamMembers } from "@/lib/crm/use-crm-team-members";
+import {
+  createProjectId,
+  readStoredProjects,
+  writeStoredProjects,
+} from "@/lib/crm/projects-storage";
 
 type ViewMode = "kanban" | "table";
 
 const planOrder: PlanStage[] = ["pipeline", "planning", "mvp", "growth"];
 
-const FALLBACK_TEAM: MockTeam = {
-  id: "team-general",
-  name: "Unassigned",
-  color: "#94a3b8",
-};
-
-function teamSelectOptions(): MockTeam[] {
-  return teams.length > 0 ? teams : [FALLBACK_TEAM];
-}
-
-function resolveTeam(teamId: string): MockTeam | undefined {
-  return teams.find((t) => t.id === teamId) ?? (teamId === FALLBACK_TEAM.id ? FALLBACK_TEAM : undefined);
-}
-
 export default function ProjectsPage() {
   const [view, setView] = useState<ViewMode>("kanban");
   const [filterPlan, setFilterPlan] = useState<string>("all");
   const [filterTeam, setFilterTeam] = useState<string>("all");
-  const [projectList, setProjectList] = useState<MockProject[]>(initialProjects);
+  const [projectList, setProjectList] = useState<MockProject[]>(() => [
+    ...initialProjects,
+  ]);
   const [modalOpen, setModalOpen] = useState(false);
+
+  useEffect(() => {
+    const stored = readStoredProjects();
+    if (stored.length > 0) setProjectList(stored);
+  }, []);
+
+  useEffect(() => {
+    const sync = () => {
+      const next = readStoredProjects();
+      if (next.length > 0) setProjectList(next);
+    };
+    window.addEventListener("crm-projects-changed", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("crm-projects-changed", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  const teamFilterOptions = useMemo(() => {
+    const labels = new Set<string>();
+    for (const p of projectList) {
+      labels.add(projectTeamDisplayName(p));
+    }
+    return Array.from(labels).sort((a, b) => {
+      if (a === "Unassigned") return -1;
+      if (b === "Unassigned") return 1;
+      return a.localeCompare(b);
+    });
+  }, [projectList]);
 
   const filtered = projectList.filter((p) => {
     if (filterPlan !== "all" && p.plan !== filterPlan) return false;
-    if (filterTeam !== "all" && p.teamId !== filterTeam) return false;
+    if (filterTeam !== "all" && projectTeamDisplayName(p) !== filterTeam) {
+      return false;
+    }
     return true;
   });
 
@@ -54,11 +80,13 @@ export default function ProjectsPage() {
   }));
 
   function handleMove(itemId: string, _from: string, to: string) {
-    setProjectList((prev) =>
-      prev.map((p) =>
+    setProjectList((prev) => {
+      const next = prev.map((p) =>
         p.id === itemId ? { ...p, plan: to as PlanStage } : p
-      )
-    );
+      );
+      writeStoredProjects(next);
+      return next;
+    });
   }
 
   return (
@@ -110,10 +138,10 @@ export default function ProjectsPage() {
           onChange={(e) => setFilterTeam(e.target.value)}
           className="rounded-lg border border-border bg-white px-3 py-1.5 text-sm text-text-primary"
         >
-          <option value="all">All Team</option>
-          {teamSelectOptions().map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
+          <option value="all">All teams</option>
+          {teamFilterOptions.map((name) => (
+            <option key={name} value={name}>
+              {name}
             </option>
           ))}
         </select>
@@ -136,7 +164,11 @@ export default function ProjectsPage() {
         <NewProjectModal
           onClose={() => setModalOpen(false)}
           onAdd={(project) => {
-            setProjectList((prev) => [...prev, project]);
+            setProjectList((prev) => {
+              const next = [...prev, project];
+              writeStoredProjects(next);
+              return next;
+            });
             setModalOpen(false);
           }}
         />
@@ -146,7 +178,7 @@ export default function ProjectsPage() {
 }
 
 function ProjectCard({ project }: { project: MockProject }) {
-  const team = resolveTeam(project.teamId);
+  const teamLabel = projectTeamDisplayName(project);
   return (
     <Link
       href={`/projects/${project.id}`}
@@ -159,7 +191,7 @@ function ProjectCard({ project }: { project: MockProject }) {
             {project.projectType}
           </span>
         ) : null}
-        {team?.name ?? "—"} · {project.sprintCount} sprints · {project.taskCount}{" "}
+        {teamLabel} · {project.sprintCount} sprints · {project.taskCount}{" "}
         tasks
       </p>
     </Link>
@@ -175,15 +207,17 @@ function ProjectTable({ projects: items }: { projects: MockProject[] }) {
             <th className="px-4 py-3 font-semibold text-text-secondary">Project</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">Type</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">Plan</th>
-            <th className="px-4 py-3 font-semibold text-text-secondary">Team</th>
+            <th className="px-4 py-3 font-semibold text-text-secondary">Team name</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">End Date</th>
+            <th className="px-4 py-3 font-semibold text-text-secondary">Budget</th>
+            <th className="px-4 py-3 font-semibold text-text-secondary">Website</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">Sprints</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">Tasks</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
           {items.map((p) => {
-            const team = resolveTeam(p.teamId);
+            const teamLabel = projectTeamDisplayName(p);
             return (
               <tr key={p.id} className="hover:bg-surface/50">
                 <td className="px-4 py-3">
@@ -205,8 +239,26 @@ function ProjectTable({ projects: items }: { projects: MockProject[] }) {
                     {PLAN_LABELS[p.plan]}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-text-secondary">{team?.name ?? "—"}</td>
+                <td className="px-4 py-3 text-text-secondary">{teamLabel}</td>
                 <td className="px-4 py-3 text-text-secondary">{p.expectedEndDate}</td>
+                <td className="px-4 py-3 text-text-secondary">
+                  {p.budget != null && p.budget > 0
+                    ? new Intl.NumberFormat("en-US", {
+                        style: "currency",
+                        currency: "USD",
+                        maximumFractionDigits: 0,
+                      }).format(p.budget)
+                    : "—"}
+                </td>
+                <td className="px-4 py-3 text-text-secondary">
+                  {p.website ? (
+                    <span className="max-w-[10rem] truncate block" title={p.website}>
+                      {p.website.replace(/^https?:\/\//i, "")}
+                    </span>
+                  ) : (
+                    "—"
+                  )}
+                </td>
                 <td className="px-4 py-3 text-text-secondary">{p.sprintCount}</td>
                 <td className="px-4 py-3 text-text-secondary">{p.taskCount}</td>
               </tr>
@@ -225,14 +277,16 @@ function NewProjectModal({
   onClose: () => void;
   onAdd: (p: MockProject) => void;
 }) {
-  const teamOpts = teamSelectOptions();
+  const teamMembers = useCrmTeamMembers();
   const [title, setTitle] = useState("");
   const [plan, setPlan] = useState<PlanStage>("pipeline");
-  const [teamId, setTeamId] = useState(teamOpts[0]?.id ?? FALLBACK_TEAM.id);
+  const [teamMemberId, setTeamMemberId] = useState("");
   const [projectType, setProjectType] = useState<string>(
     LEAD_PROJECT_TYPE_OPTIONS[0]
   );
   const [endDate, setEndDate] = useState("");
+  const [budget, setBudget] = useState("");
+  const [website, setWebsite] = useState("");
 
   const fieldClass =
     "w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-text-primary shadow-sm outline-none transition-[box-shadow,border-color] placeholder:text-text-secondary/45 focus:border-accent focus:ring-2 focus:ring-accent/15";
@@ -245,14 +299,27 @@ function NewProjectModal({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
+    const budgetRaw = budget.replace(/,/g, "").trim();
+    let budgetNum: number | null = null;
+    if (budgetRaw !== "") {
+      const n = Number(budgetRaw);
+      if (!Number.isNaN(n) && n >= 0) budgetNum = n;
+    }
+    const member = teamMemberId
+      ? teamMembers.find((m) => m.id === teamMemberId)
+      : undefined;
+    const name = member?.name.trim() ?? "";
     onAdd({
-      id: `proj-${Date.now()}`,
+      id: createProjectId(),
       title: title.trim(),
       plan,
-      teamId,
+      teamId: member ? member.teamId : "team-general",
+      teamName: name || null,
       projectType,
       color: "#6366f1",
       expectedEndDate: endDate || "TBD",
+      budget: budgetNum,
+      website: website.trim() || null,
       sprintCount: 0,
       taskCount: 0,
     });
@@ -329,19 +396,22 @@ function NewProjectModal({
                 </div>
               </div>
               <div>
-                <label htmlFor="np-team" className={labelClass}>
-                  Team
+                <label htmlFor="np-team-name" className={labelClass}>
+                  Team name
                 </label>
                 <div className="relative">
                   <select
-                    id="np-team"
-                    value={teamId}
-                    onChange={(e) => setTeamId(e.target.value)}
+                    id="np-team-name"
+                    value={teamMemberId}
+                    onChange={(e) => setTeamMemberId(e.target.value)}
                     className={selectClass}
+                    disabled={teamMembers.length === 0}
                   >
-                    {teamOpts.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.name}
+                    <option value="">Unassigned</option>
+                    {teamMembers.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name}
+                        {m.role ? ` · ${m.role}` : ""}
                       </option>
                     ))}
                   </select>
@@ -350,6 +420,15 @@ function NewProjectModal({
                     aria-hidden
                   />
                 </div>
+                {teamMembers.length === 0 ? (
+                  <p className="mt-1.5 text-xs text-amber-800 dark:text-amber-200/90">
+                    No members yet. Open{" "}
+                    <Link href="/team" className="font-medium underline">
+                      Team
+                    </Link>{" "}
+                    and add people.
+                  </p>
+                ) : null}
               </div>
             </div>
 
@@ -377,23 +456,48 @@ function NewProjectModal({
               </div>
             </div>
 
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div>
+                <label htmlFor="np-budget" className={labelClass}>
+                  Budget (USD)
+                </label>
+                <input
+                  id="np-budget"
+                  type="text"
+                  inputMode="decimal"
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value)}
+                  className={fieldClass}
+                  placeholder="e.g. 25000"
+                />
+              </div>
+              <div>
+                <label htmlFor="np-website" className={labelClass}>
+                  Website
+                </label>
+                <input
+                  id="np-website"
+                  type="text"
+                  inputMode="url"
+                  autoComplete="url"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  className={fieldClass}
+                  placeholder="https://example.com"
+                />
+              </div>
+            </div>
+
             <div>
               <label htmlFor="np-end" className={labelClass}>
                 Expected end date
               </label>
-              <div className="relative">
-                <Calendar
-                  className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary/55"
-                  aria-hidden
-                />
-                <input
-                  id="np-end"
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className={`${fieldClass} pl-10 font-mono text-[13px] tabular-nums [color-scheme:light] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-2 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:hover:opacity-100`}
-                />
-              </div>
+              <CrmPopoverDateField
+                id="np-end"
+                value={endDate}
+                onChange={setEndDate}
+                triggerClassName={`${fieldClass} relative flex min-h-[2.625rem] items-center`}
+              />
               <p className="mt-1.5 text-xs text-text-secondary">
                 Optional. If you skip this, the project shows as{" "}
                 <span className="font-medium text-text-primary">TBD</span>.

@@ -50,6 +50,7 @@ type DealRow = {
   stage: string | null;
   expected_close: string | null;
   contact_email: string | null;
+  website: string | null;
 };
 
 function dateInputValue(iso: string | null | undefined): string {
@@ -293,6 +294,20 @@ export default function LeadEditForm({
                 type="date"
                 defaultValue={dateInputValue(deal?.expected_close)}
                 className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-secondary">
+                Website
+              </label>
+              <input
+                name="deal_website"
+                type="text"
+                inputMode="url"
+                autoComplete="url"
+                defaultValue={deal?.website ?? ""}
+                className={inputClass}
+                placeholder="https://example.com"
               />
             </div>
           </div>
