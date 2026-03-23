@@ -107,12 +107,10 @@ function convRate(a: number, b: number) {
 
 function buildLeadsChart() {
   const months = ["Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
-  const appointments = [3, 5, 2, 7, 8, 10];
-  const newLeads = [4, 6, 3, 8, 9, 9];
-  return months.map((m, i) => ({
+  return months.map((m) => ({
     month: m,
-    appointments: appointments[i],
-    leads: newLeads[i],
+    appointments: 0,
+    leads: 0,
   }));
 }
 
@@ -138,11 +136,7 @@ function buildDealsHeatmap() {
   const data: { day: string; hour: string; value: number }[] = [];
   days.forEach((day) => {
     hours.forEach((hour) => {
-      data.push({
-        day,
-        hour,
-        value: Math.random() > 0.65 ? Math.floor(Math.random() * 4) + 1 : 0,
-      });
+      data.push({ day, hour, value: 0 });
     });
   });
   return { days, hours, data };

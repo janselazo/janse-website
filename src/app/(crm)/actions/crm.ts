@@ -56,7 +56,14 @@ export async function updateLead(formData: FormData) {
   const stage = String(formData.get("stage") ?? "new").trim();
   const notes = String(formData.get("notes") ?? "").trim();
 
-  const allowedStages = ["new", "contacted", "qualified", "won", "lost"];
+  const allowedStages = [
+    "new",
+    "contacted",
+    "qualified",
+    "not_qualified",
+    "won",
+    "lost",
+  ];
   if (!allowedStages.includes(stage)) {
     return { error: "Invalid stage" };
   }
@@ -75,6 +82,57 @@ export async function updateLead(formData: FormData) {
     .eq("id", id);
 
   if (error) return { error: error.message };
+
+  const dealTitle = String(formData.get("deal_title") ?? "").trim();
+  const dealCompany = String(formData.get("deal_company") ?? "").trim();
+  const dealValueRaw = String(formData.get("deal_value") ?? "").trim();
+  const dealStage = String(formData.get("deal_stage") ?? "prospect").trim();
+  const dealExpectedClose = String(
+    formData.get("deal_expected_close") ?? ""
+  ).trim();
+  const dealContactEmail = String(
+    formData.get("deal_contact_email") ?? ""
+  ).trim();
+
+  const allowedDealStages = [
+    "prospect",
+    "proposal",
+    "negotiation",
+    "closed_won",
+    "closed_lost",
+  ] as const;
+  if (!allowedDealStages.includes(dealStage as (typeof allowedDealStages)[number])) {
+    return { error: "Invalid deal stage" };
+  }
+
+  let valueNum: number | null = null;
+  if (dealValueRaw !== "") {
+    const n = Number(dealValueRaw.replace(/,/g, ""));
+    if (Number.isNaN(n) || n < 0) {
+      return { error: "Deal value must be a valid number" };
+    }
+    valueNum = n;
+  }
+
+  const expectedClose =
+    dealExpectedClose === "" ? null : dealExpectedClose;
+
+  const { error: dealErr } = await supabase.from("deal").upsert(
+    {
+      lead_id: id,
+      title: dealTitle || null,
+      company: dealCompany || null,
+      value: valueNum,
+      stage: dealStage,
+      expected_close: expectedClose,
+      contact_email: dealContactEmail || null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "lead_id" }
+  );
+
+  if (dealErr) return { error: dealErr.message };
+
   revalidatePath("/leads");
   revalidatePath(`/leads/${id}`);
   revalidatePath("/dashboard");

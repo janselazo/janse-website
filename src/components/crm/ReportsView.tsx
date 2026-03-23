@@ -139,7 +139,12 @@ export default function ReportsView() {
   const totalDealValue = deals.reduce((s, d) => s + d.value, 0);
   const wonValue = deals.filter((d) => d.stage === "closed_won").reduce((s, d) => s + d.value, 0);
   const openPipeline = deals.filter((d) => !["closed_won", "closed_lost"].includes(d.stage)).reduce((s, d) => s + d.value, 0);
-  const avgUtil = Math.round(teamMembers.reduce((s, m) => s + m.utilization, 0) / teamMembers.length);
+  const avgUtil =
+    teamMembers.length === 0
+      ? 0
+      : Math.round(
+          teamMembers.reduce((s, m) => s + m.utilization, 0) / teamMembers.length
+        );
   const completedTasks = tasks.filter((t) => t.status === "completed").length;
   const winRate = leads.length > 0
     ? Math.round((leads.filter((l) => l.stage === "qualified").length / leads.length) * 100)

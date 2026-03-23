@@ -28,6 +28,16 @@ export default async function LeadDetailPage({ params }: Props) {
 
   if (error || !lead) notFound();
 
+  const dealQuery = await supabase
+    .from("deal")
+    .select(
+      "title, company, value, stage, expected_close, contact_email"
+    )
+    .eq("lead_id", id)
+    .maybeSingle();
+
+  const deal = dealQuery.error ? null : dealQuery.data;
+
   return (
     <div className="p-8">
       <Link
@@ -46,7 +56,7 @@ export default async function LeadDetailPage({ params }: Props) {
           : "—"}
       </p>
       <div className="mt-8 max-w-2xl">
-        <LeadEditForm lead={lead} />
+        <LeadEditForm lead={lead} deal={deal} />
       </div>
     </div>
   );

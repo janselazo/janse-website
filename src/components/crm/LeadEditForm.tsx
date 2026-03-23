@@ -3,16 +3,31 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { updateLead } from "@/app/(crm)/actions/crm";
+import TabBar from "@/components/crm/TabBar";
 
 const inputClass =
   "w-full rounded-xl border border-border bg-white px-3 py-2 text-sm text-text-primary outline-none focus:border-accent focus:ring-2 focus:ring-accent/15";
 
-const stages = [
+const leadStages = [
   { value: "new", label: "New" },
   { value: "contacted", label: "Contacted" },
   { value: "qualified", label: "Qualified" },
+  { value: "not_qualified", label: "Not Qualified" },
   { value: "won", label: "Won" },
   { value: "lost", label: "Lost" },
+] as const;
+
+const dealStages = [
+  { value: "prospect", label: "Prospect" },
+  { value: "proposal", label: "Proposal" },
+  { value: "negotiation", label: "Negotiation" },
+  { value: "closed_won", label: "Closed Won" },
+  { value: "closed_lost", label: "Closed Lost" },
+] as const;
+
+const LEAD_TABS = [
+  { id: "contact", label: "Contact" },
+  { id: "deal", label: "Deal" },
 ] as const;
 
 type Lead = {
@@ -26,11 +41,38 @@ type Lead = {
   notes: string | null;
 };
 
-export default function LeadEditForm({ lead }: { lead: Lead }) {
+type DealRow = {
+  title: string | null;
+  company: string | null;
+  value: number | null;
+  stage: string | null;
+  expected_close: string | null;
+  contact_email: string | null;
+};
+
+function dateInputValue(iso: string | null | undefined): string {
+  if (!iso) return "";
+  return iso.slice(0, 10);
+}
+
+export default function LeadEditForm({
+  lead,
+  deal,
+}: {
+  lead: Lead;
+  deal: DealRow | null;
+}) {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<string>("contact");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+
+  const dealStageDefault =
+    deal?.stage &&
+    dealStages.some((s) => s.value === deal.stage)
+      ? deal.stage
+      : "prospect";
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -51,109 +93,211 @@ export default function LeadEditForm({ lead }: { lead: Lead }) {
   return (
     <form
       onSubmit={onSubmit}
-      className="rounded-2xl border border-border bg-white p-6 shadow-sm"
+      className="rounded-2xl border border-border bg-white shadow-sm"
     >
       <input type="hidden" name="id" value={lead.id} />
-      {error ? (
-        <p className="mb-4 text-sm text-red-700" role="alert">
-          {error}
-        </p>
-      ) : null}
-      {saved ? (
-        <p className="mb-4 text-sm text-emerald-800">Saved.</p>
-      ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label className="mb-1 block text-xs font-medium text-text-secondary">
-            Name
-          </label>
-          <input
-            name="name"
-            type="text"
-            defaultValue={lead.name ?? ""}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-text-secondary">
-            Email
-          </label>
-          <input
-            name="email"
-            type="email"
-            defaultValue={lead.email ?? ""}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-text-secondary">
-            Company
-          </label>
-          <input
-            name="company"
-            type="text"
-            defaultValue={lead.company ?? ""}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-text-secondary">
-            Phone
-          </label>
-          <input
-            name="phone"
-            type="tel"
-            defaultValue={lead.phone ?? ""}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-text-secondary">
-            Source
-          </label>
-          <input
-            name="source"
-            type="text"
-            defaultValue={lead.source ?? ""}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-text-secondary">
-            Stage
-          </label>
-          <select
-            name="stage"
-            defaultValue={lead.stage ?? "new"}
-            className={inputClass}
-          >
-            {stages.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="sm:col-span-2">
-          <label className="mb-1 block text-xs font-medium text-text-secondary">
-            Notes
-          </label>
-          <textarea
-            name="notes"
-            rows={4}
-            defaultValue={lead.notes ?? ""}
-            className={inputClass}
-          />
-        </div>
+      <div className="px-6 pt-5">
+        <TabBar
+          tabs={[...LEAD_TABS]}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
       </div>
-      <button
-        type="submit"
-        disabled={pending}
-        className="mt-6 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-hover disabled:opacity-60"
-      >
-        {pending ? "Saving…" : "Save changes"}
-      </button>
+
+      <div className="border-t border-border px-6 pb-6 pt-5">
+        {error ? (
+          <p className="mb-4 text-sm text-red-700" role="alert">
+            {error}
+          </p>
+        ) : null}
+        {saved ? (
+          <p className="mb-4 text-sm text-emerald-800">Saved.</p>
+        ) : null}
+
+        <div
+          className={activeTab === "contact" ? "space-y-4" : "hidden"}
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-secondary">
+                Name
+              </label>
+              <input
+                name="name"
+                type="text"
+                defaultValue={lead.name ?? ""}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-secondary">
+                Email
+              </label>
+              <input
+                name="email"
+                type="email"
+                defaultValue={lead.email ?? ""}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-secondary">
+                Company
+              </label>
+              <input
+                name="company"
+                type="text"
+                defaultValue={lead.company ?? ""}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-secondary">
+                Phone
+              </label>
+              <input
+                name="phone"
+                type="tel"
+                defaultValue={lead.phone ?? ""}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-secondary">
+                Source
+              </label>
+              <input
+                name="source"
+                type="text"
+                defaultValue={lead.source ?? ""}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-secondary">
+                Lead stage
+              </label>
+              <select
+                name="stage"
+                defaultValue={lead.stage ?? "new"}
+                className={inputClass}
+              >
+                {leadStages.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-text-secondary">
+              Notes
+            </label>
+            <textarea
+              name="notes"
+              rows={4}
+              defaultValue={lead.notes ?? ""}
+              className={inputClass}
+            />
+          </div>
+        </div>
+
+        <div className={activeTab === "deal" ? "space-y-4" : "hidden"}>
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-text-secondary/60">
+            Deal
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-secondary">
+                Deal title
+              </label>
+              <input
+                name="deal_title"
+                type="text"
+                defaultValue={deal?.title ?? ""}
+                className={inputClass}
+                placeholder="e.g. MVP build"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-secondary">
+                Company
+              </label>
+              <input
+                name="deal_company"
+                type="text"
+                defaultValue={deal?.company ?? ""}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-secondary">
+                Value ($)
+              </label>
+              <input
+                name="deal_value"
+                type="text"
+                inputMode="decimal"
+                defaultValue={
+                  deal?.value != null && deal.value !== undefined
+                    ? String(deal.value)
+                    : ""
+                }
+                className={inputClass}
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-secondary">
+                Stage
+              </label>
+              <select
+                name="deal_stage"
+                defaultValue={dealStageDefault}
+                className={inputClass}
+              >
+                {dealStages.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-secondary">
+                Expected close
+              </label>
+              <input
+                name="deal_expected_close"
+                type="date"
+                defaultValue={dateInputValue(deal?.expected_close)}
+                className={inputClass}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-text-secondary">
+              Contact email
+            </label>
+            <input
+              name="deal_contact_email"
+              type="email"
+              defaultValue={deal?.contact_email ?? ""}
+              className={inputClass}
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={pending}
+          className="mt-6 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-hover disabled:opacity-60"
+        >
+          {pending ? "Saving…" : "Save changes"}
+        </button>
+      </div>
     </form>
   );
 }

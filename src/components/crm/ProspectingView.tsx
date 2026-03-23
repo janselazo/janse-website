@@ -24,6 +24,7 @@ import {
   Target,
   DollarSign,
   Pencil,
+  Trash2,
 } from "lucide-react";
 import TabBar from "@/components/crm/TabBar";
 import {
@@ -329,6 +330,13 @@ function MonthlyGoalsCard({
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => onChange(goals.filter((x) => x.id !== g.id))}
+                      className="rounded p-0.5 text-text-secondary/40 transition-colors hover:text-red-500"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 )}
               </div>
@@ -381,16 +389,74 @@ function MonthlyGoalsCard({
 function PlaybookTab() {
   const [completions, setCompletions] = useState<Record<string, number>>(getCompletions);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [categories, setCategories] = useState<PlaybookCategory[]>(playbookCategories);
+  const [editingActivity, setEditingActivity] = useState<string | null>(null);
+  const [editFields, setEditFields] = useState({ title: "", points: 0, target: 0, timeEstimate: "" });
 
   useEffect(() => {
     saveCompletions(completions);
   }, [completions]);
 
-  const totalPoints = playbookCategories.reduce(
+  function startEditActivity(a: PlaybookActivity) {
+    setEditingActivity(a.id);
+    setEditFields({ title: a.title, points: a.points, target: a.target, timeEstimate: a.timeEstimate });
+  }
+
+  function confirmEditActivity() {
+    if (!editingActivity) return;
+    const id = editingActivity;
+    setCategories((prev) =>
+      prev.map((c) => ({
+        ...c,
+        activities: c.activities.map((a) =>
+          a.id === id
+            ? { ...a, title: editFields.title.trim() || a.title, points: Math.max(1, editFields.points), target: Math.max(1, editFields.target), timeEstimate: editFields.timeEstimate.trim() || a.timeEstimate }
+            : a
+        ),
+      }))
+    );
+    setEditingActivity(null);
+  }
+
+  function deleteActivity(catId: string, activityId: string) {
+    setCategories((prev) =>
+      prev.map((c) =>
+        c.id === catId
+          ? { ...c, activities: c.activities.filter((a) => a.id !== activityId) }
+          : c
+      )
+    );
+  }
+
+  function addActivity(catId: string) {
+    const newId = `a-${Date.now()}`;
+    setCategories((prev) =>
+      prev.map((c) =>
+        c.id === catId
+          ? { ...c, activities: [...c.activities, { id: newId, title: "New Activity", points: 5, target: 1, timeEstimate: "5 min" }] }
+          : c
+      )
+    );
+    startEditActivity({ id: newId, title: "New Activity", points: 5, target: 1, timeEstimate: "5 min" });
+  }
+
+  function addSection() {
+    const newId = `cat-${Date.now()}`;
+    setCategories((prev) => [
+      ...prev,
+      { id: newId, name: "New Section", icon: "phone", color: "#6366f1", activities: [] },
+    ]);
+  }
+
+  function deleteSection(catId: string) {
+    setCategories((prev) => prev.filter((c) => c.id !== catId));
+  }
+
+  const totalPoints = categories.reduce(
     (sum, c) => sum + c.activities.reduce((s, a) => s + a.points, 0),
     0
   );
-  const earnedPoints = playbookCategories.reduce(
+  const earnedPoints = categories.reduce(
     (sum, c) =>
       sum +
       c.activities.reduce((s, a) => {
@@ -399,11 +465,11 @@ function PlaybookTab() {
       }, 0),
     0
   );
-  const totalActivities = playbookCategories.reduce(
+  const totalActivities = categories.reduce(
     (s, c) => s + c.activities.length,
     0
   );
-  const completedActivities = playbookCategories.reduce(
+  const completedActivities = categories.reduce(
     (s, c) =>
       s +
       c.activities.filter((a) => (completions[a.id] ?? 0) >= a.target).length,
@@ -470,7 +536,7 @@ function PlaybookTab() {
 
       {/* Activity sections */}
       <div className="mt-6 space-y-4">
-        {playbookCategories.map((cat) => {
+        {categories.map((cat) => {
           const catEarned = cat.activities.reduce((s, a) => {
             const done = completions[a.id] ?? 0;
             return s + (done >= a.target ? a.points : 0);
@@ -484,41 +550,49 @@ function PlaybookTab() {
               className="rounded-2xl border border-border bg-white shadow-sm"
             >
               {/* Section header */}
-              <button
-                type="button"
-                onClick={() => toggleCollapse(cat.id)}
-                className="flex w-full items-center gap-3 px-5 py-4"
-              >
-                <span
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-white"
-                  style={{ backgroundColor: cat.color }}
+              <div className="flex items-center gap-3 px-5 py-4">
+                <button
+                  type="button"
+                  onClick={() => toggleCollapse(cat.id)}
+                  className="flex flex-1 items-center gap-3"
                 >
-                  {CATEGORY_ICONS[cat.icon] ?? (
-                    <Circle className="h-4 w-4" />
-                  )}
-                </span>
-                <span className="text-sm font-semibold text-text-primary">
-                  {cat.name}
-                </span>
-                {/* mini progress */}
-                <div className="ml-2 h-1.5 w-20 overflow-hidden rounded-full bg-gray-100">
-                  <div
-                    className="h-full rounded-full transition-all"
-                    style={{
-                      width: `${catTotal > 0 ? (catEarned / catTotal) * 100 : 0}%`,
-                      backgroundColor: cat.color,
-                    }}
+                  <span
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-white"
+                    style={{ backgroundColor: cat.color }}
+                  >
+                    {CATEGORY_ICONS[cat.icon] ?? (
+                      <Circle className="h-4 w-4" />
+                    )}
+                  </span>
+                  <span className="text-sm font-semibold text-text-primary">
+                    {cat.name}
+                  </span>
+                  <div className="ml-2 h-1.5 w-20 overflow-hidden rounded-full bg-gray-100">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${catTotal > 0 ? (catEarned / catTotal) * 100 : 0}%`,
+                        backgroundColor: cat.color,
+                      }}
+                    />
+                  </div>
+                  <span className="text-xs text-text-secondary">
+                    {catEarned}/{catTotal} pts
+                  </span>
+                  <ChevronDown
+                    className={`ml-auto h-4 w-4 text-text-secondary transition-transform ${
+                      isOpen ? "" : "-rotate-90"
+                    }`}
                   />
-                </div>
-                <span className="text-xs text-text-secondary">
-                  {catEarned}/{catTotal} pts
-                </span>
-                <ChevronDown
-                  className={`ml-auto h-4 w-4 text-text-secondary transition-transform ${
-                    isOpen ? "" : "-rotate-90"
-                  }`}
-                />
-              </button>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => deleteSection(cat.id)}
+                  className="rounded p-1 text-text-secondary/40 transition-colors hover:text-red-500"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
 
               {/* Activities */}
               {isOpen && (
@@ -528,6 +602,13 @@ function PlaybookTab() {
                       key={activity.id}
                       activity={activity}
                       completed={completions[activity.id] ?? 0}
+                      isEditing={editingActivity === activity.id}
+                      editFields={editFields}
+                      onEditFieldsChange={setEditFields}
+                      onStartEdit={() => startEditActivity(activity)}
+                      onConfirmEdit={confirmEditActivity}
+                      onCancelEdit={() => setEditingActivity(null)}
+                      onDelete={() => deleteActivity(cat.id, activity.id)}
                       onIncrement={() =>
                         increment(activity.id, activity.target)
                       }
@@ -536,6 +617,7 @@ function PlaybookTab() {
                   <div className="px-5 py-3">
                     <button
                       type="button"
+                      onClick={() => addActivity(cat.id)}
                       className="flex items-center gap-1 text-xs font-medium text-text-secondary hover:text-accent"
                     >
                       <Plus className="h-3 w-3" /> Add Activity
@@ -550,6 +632,7 @@ function PlaybookTab() {
 
       <button
         type="button"
+        onClick={addSection}
         className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-border py-3 text-sm font-medium text-text-secondary hover:border-accent hover:text-accent"
       >
         <Plus className="h-4 w-4" /> Add New Section
@@ -561,16 +644,84 @@ function PlaybookTab() {
 function ActivityRow({
   activity,
   completed,
+  isEditing,
+  editFields,
+  onEditFieldsChange,
+  onStartEdit,
+  onConfirmEdit,
+  onCancelEdit,
+  onDelete,
   onIncrement,
 }: {
   activity: PlaybookActivity;
   completed: number;
+  isEditing: boolean;
+  editFields: { title: string; points: number; target: number; timeEstimate: string };
+  onEditFieldsChange: (f: { title: string; points: number; target: number; timeEstimate: string }) => void;
+  onStartEdit: () => void;
+  onConfirmEdit: () => void;
+  onCancelEdit: () => void;
+  onDelete: () => void;
   onIncrement: () => void;
 }) {
   const isDone = completed >= activity.target;
 
+  if (isEditing) {
+    return (
+      <div className="flex flex-col gap-2 border-b border-border bg-surface/30 px-5 py-3 last:border-b-0">
+        <input
+          autoFocus
+          value={editFields.title}
+          onChange={(e) => onEditFieldsChange({ ...editFields, title: e.target.value })}
+          onKeyDown={(e) => { if (e.key === "Enter") onConfirmEdit(); if (e.key === "Escape") onCancelEdit(); }}
+          className="w-full rounded-lg border border-border px-2.5 py-1.5 text-sm focus:border-accent focus:outline-none"
+          placeholder="Activity name"
+        />
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-1 text-xs text-text-secondary">
+            Points
+            <input
+              type="number"
+              min="1"
+              value={editFields.points}
+              onChange={(e) => onEditFieldsChange({ ...editFields, points: Number(e.target.value) })}
+              className="w-14 rounded-lg border border-border px-2 py-1 text-xs focus:border-accent focus:outline-none"
+            />
+          </label>
+          <label className="flex items-center gap-1 text-xs text-text-secondary">
+            Target
+            <input
+              type="number"
+              min="1"
+              value={editFields.target}
+              onChange={(e) => onEditFieldsChange({ ...editFields, target: Number(e.target.value) })}
+              className="w-14 rounded-lg border border-border px-2 py-1 text-xs focus:border-accent focus:outline-none"
+            />
+          </label>
+          <label className="flex items-center gap-1 text-xs text-text-secondary">
+            Time
+            <input
+              value={editFields.timeEstimate}
+              onChange={(e) => onEditFieldsChange({ ...editFields, timeEstimate: e.target.value })}
+              className="w-20 rounded-lg border border-border px-2 py-1 text-xs focus:border-accent focus:outline-none"
+              placeholder="e.g. 5 min"
+            />
+          </label>
+          <div className="ml-auto flex items-center gap-1">
+            <button type="button" onClick={onConfirmEdit} className="flex h-7 w-7 items-center justify-center rounded-full text-emerald-500 hover:bg-emerald-50">
+              <CheckCircle2 className="h-4 w-4" />
+            </button>
+            <button type="button" onClick={onCancelEdit} className="rounded px-2 py-1 text-xs text-text-secondary hover:text-text-primary">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex items-center gap-3 border-b border-border px-5 py-3 last:border-b-0">
+    <div className="group flex items-center gap-3 border-b border-border px-5 py-3 last:border-b-0">
       <span className="w-6 text-center text-[11px] font-bold text-text-secondary/50">
         {activity.id.replace("a-", "")}
       </span>
@@ -588,8 +739,22 @@ function ActivityRow({
           {activity.points} pts each · {activity.timeEstimate}
         </p>
       </div>
-      <div className="flex items-center gap-2">
-        <span className="text-xs tabular-nums text-text-secondary">
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={onStartEdit}
+          className="rounded p-1 text-text-secondary/0 transition-colors group-hover:text-text-secondary/40 group-hover:hover:text-accent"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={onDelete}
+          className="rounded p-1 text-text-secondary/0 transition-colors group-hover:text-text-secondary/40 group-hover:hover:text-red-500"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+        <span className="ml-1 text-xs tabular-nums text-text-secondary">
           {completed}
         </span>
         <button
@@ -614,77 +779,283 @@ function ActivityRow({
 interface AgendaEntry {
   id: string;
   text: string;
-  time: string;
+  done: boolean;
+}
+
+const AGENDA_STORAGE_KEY = "crm-agenda";
+
+function loadAgenda(): Record<string, AgendaEntry[]> {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(localStorage.getItem(AGENDA_STORAGE_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function persistAgenda(data: Record<string, AgendaEntry[]>) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(AGENDA_STORAGE_KEY, JSON.stringify(data));
+}
+
+function carryForward(
+  all: Record<string, AgendaEntry[]>,
+  todayKey: string
+): Record<string, AgendaEntry[]> {
+  const updated = { ...all };
+  const existingIds = new Set((updated[todayKey] ?? []).map((e) => e.id));
+
+  const pastKeys = Object.keys(updated)
+    .filter((k) => k < todayKey)
+    .sort();
+
+  for (const key of pastKeys) {
+    const incomplete = updated[key].filter((e) => !e.done);
+    if (incomplete.length === 0) continue;
+    const toMove = incomplete.filter((e) => !existingIds.has(e.id));
+    if (toMove.length > 0) {
+      updated[todayKey] = [...(updated[todayKey] ?? []), ...toMove];
+      toMove.forEach((e) => existingIds.add(e.id));
+    }
+    updated[key] = updated[key].filter((e) => e.done);
+  }
+  return updated;
 }
 
 function AgendaTab({ date }: { date: Date }) {
   const dateKey = date.toISOString().slice(0, 10);
-  const [entriesByDate, setEntriesByDate] = useState<
-    Record<string, AgendaEntry[]>
-  >({});
+  const [entriesByDate, setEntriesByDate] = useState<Record<string, AgendaEntry[]>>(() => {
+    const raw = loadAgenda();
+    const today = new Date().toISOString().slice(0, 10);
+    return carryForward(raw, today);
+  });
   const [draft, setDraft] = useState("");
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
   const entries = entriesByDate[dateKey] ?? [];
+
+  function update(next: Record<string, AgendaEntry[]>) {
+    setEntriesByDate(next);
+    persistAgenda(next);
+  }
 
   function addEntry() {
     if (!draft.trim()) return;
     const entry: AgendaEntry = {
       id: `ae-${Date.now()}`,
       text: draft.trim(),
-      time: new Date().toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-      }),
+      done: false,
     };
-    setEntriesByDate((prev) => ({
-      ...prev,
-      [dateKey]: [...(prev[dateKey] ?? []), entry],
-    }));
+    update({
+      ...entriesByDate,
+      [dateKey]: [...entries, entry],
+    });
     setDraft("");
   }
 
+  function toggleDone(id: string) {
+    update({
+      ...entriesByDate,
+      [dateKey]: entries.map((e) =>
+        e.id === id ? { ...e, done: !e.done } : e
+      ),
+    });
+  }
+
+  function deleteEntry(id: string) {
+    update({
+      ...entriesByDate,
+      [dateKey]: entries.filter((e) => e.id !== id),
+    });
+  }
+
+  function handleDragStart(idx: number) {
+    setDragIdx(idx);
+  }
+
+  function handleDragOver(e: React.DragEvent, idx: number) {
+    e.preventDefault();
+    setDragOverIdx(idx);
+  }
+
+  function handleDrop(idx: number) {
+    if (dragIdx === null || dragIdx === idx) {
+      setDragIdx(null);
+      setDragOverIdx(null);
+      return;
+    }
+    const reordered = [...entries];
+    const [moved] = reordered.splice(dragIdx, 1);
+    reordered.splice(idx, 0, moved);
+    update({ ...entriesByDate, [dateKey]: reordered });
+    setDragIdx(null);
+    setDragOverIdx(null);
+  }
+
+  function handleDragEnd() {
+    setDragIdx(null);
+    setDragOverIdx(null);
+  }
+
+  const completed = entries.filter((e) => e.done).length;
+  const dayLabel = date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+
+  const LINE_HEIGHT = 44;
+
   return (
-    <div className="rounded-2xl border border-border bg-amber-50/40 p-6">
-      <h2 className="text-sm font-semibold italic text-text-primary">
-        {formatShortDate(date)}
-      </h2>
+    <div
+      className="relative overflow-hidden rounded-2xl border border-amber-200/60 shadow-sm"
+      style={{
+        background:
+          "linear-gradient(to bottom, #fefce8 0%, #fef9c3 6%, #fefce8 12%, #fffef5 100%)",
+      }}
+    >
+      {/* Spiral binding dots */}
+      <div className="absolute left-7 top-0 bottom-0 w-px bg-rose-300/40" />
+      <div className="absolute left-[30px] top-0 bottom-0 w-px bg-rose-300/25" />
 
-      <div className="mt-4">
-        <input
-          type="text"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && addEntry()}
-          placeholder="Write something…"
-          className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-text-primary outline-none placeholder:text-text-secondary/40 focus:border-accent focus:ring-2 focus:ring-accent/15"
-        />
-      </div>
+      <div className="relative px-12 pt-6 pb-4">
+        {/* Date header */}
+        <p
+          className="text-2xl text-amber-800/80"
+          style={{ fontFamily: "var(--font-caveat), cursive" }}
+        >
+          {dayLabel}
+        </p>
+        {entries.length > 0 && (
+          <p
+            className="mt-0.5 text-sm text-amber-700/50"
+            style={{ fontFamily: "var(--font-caveat), cursive" }}
+          >
+            {completed}/{entries.length} completed
+          </p>
+        )}
 
-      {entries.length === 0 ? (
-        <div className="mt-10 flex flex-col items-center gap-2 py-8 text-center">
-          <span className="text-3xl">📋</span>
-          <p className="text-sm font-medium text-text-secondary">
-            Nothing on the agenda yet.
-          </p>
-          <p className="text-xs text-text-secondary/60">
-            Start listing activities or what took your time today.
-          </p>
-        </div>
-      ) : (
-        <div className="mt-5 space-y-2">
-          {entries.map((e) => (
-            <div
-              key={e.id}
-              className="flex items-start gap-3 rounded-xl bg-white px-4 py-3"
-            >
-              <span className="mt-0.5 text-xs text-text-secondary/60">
-                {e.time}
-              </span>
-              <p className="text-sm text-text-primary">{e.text}</p>
+        {/* Ruled lines + entries */}
+        <div className="mt-4">
+          {entries.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 py-12 text-center">
+              <p
+                className="text-xl text-amber-800/40"
+                style={{ fontFamily: "var(--font-caveat), cursive" }}
+              >
+                Nothing on the agenda yet...
+              </p>
+              <p
+                className="text-base text-amber-700/30"
+                style={{ fontFamily: "var(--font-caveat), cursive" }}
+              >
+                Write something below to get started
+              </p>
             </div>
+          ) : (
+            <div className="space-y-0">
+              {entries.map((entry, idx) => (
+                <div
+                  key={entry.id}
+                  draggable
+                  onDragStart={() => handleDragStart(idx)}
+                  onDragOver={(e) => handleDragOver(e, idx)}
+                  onDrop={() => handleDrop(idx)}
+                  onDragEnd={handleDragEnd}
+                  className={`group flex items-center gap-3 border-b border-amber-200/40 transition-colors ${
+                    dragOverIdx === idx && dragIdx !== idx
+                      ? "bg-amber-100/50"
+                      : ""
+                  } ${dragIdx === idx ? "opacity-40" : ""}`}
+                  style={{ height: LINE_HEIGHT, cursor: "grab" }}
+                >
+                  {/* Number */}
+                  <span
+                    className="w-5 shrink-0 text-right text-sm text-amber-700/30"
+                    style={{ fontFamily: "var(--font-caveat), cursive" }}
+                  >
+                    {idx + 1}
+                  </span>
+
+                  {/* Completion circle */}
+                  <button
+                    type="button"
+                    onClick={() => toggleDone(entry.id)}
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                      entry.done
+                        ? "border-emerald-400 bg-emerald-400 text-white"
+                        : "border-amber-300/60 hover:border-emerald-400"
+                    }`}
+                  >
+                    {entry.done && (
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+
+                  {/* Text */}
+                  <span
+                    className={`flex-1 text-lg ${
+                      entry.done
+                        ? "text-amber-700/30 line-through"
+                        : "text-amber-900/80"
+                    }`}
+                    style={{ fontFamily: "var(--font-caveat), cursive" }}
+                  >
+                    {entry.text}
+                  </span>
+
+                  {/* Delete */}
+                  <button
+                    type="button"
+                    onClick={() => deleteEntry(entry.id)}
+                    className="rounded p-1 text-amber-400/0 transition-colors group-hover:text-amber-400 group-hover:hover:text-red-400"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+
+                  {/* Drag handle */}
+                  <span className="cursor-grab text-amber-300/0 transition-colors group-hover:text-amber-400">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Input row — looks like the next ruled line */}
+          <div
+            className="flex items-center gap-3 border-b border-amber-200/40"
+            style={{ height: LINE_HEIGHT }}
+          >
+            <span
+              className="w-5 shrink-0 text-right text-sm text-amber-700/20"
+              style={{ fontFamily: "var(--font-caveat), cursive" }}
+            >
+              {entries.length + 1}
+            </span>
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-amber-200/50" />
+            <input
+              type="text"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addEntry()}
+              placeholder="Write something…"
+              className="flex-1 bg-transparent text-lg text-amber-900/80 outline-none placeholder:text-amber-600/25"
+              style={{ fontFamily: "var(--font-caveat), cursive" }}
+            />
+          </div>
+
+          {/* Extra ruled lines for notebook feel */}
+          {Array.from({ length: Math.max(0, 4 - entries.length) }).map((_, i) => (
+            <div
+              key={i}
+              className="border-b border-amber-200/30"
+              style={{ height: LINE_HEIGHT }}
+            />
           ))}
         </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -26,9 +26,12 @@ export default function CapacityPage() {
 
   const { start, end } = useMemo(() => getWeekRange(weekOffset), [weekOffset]);
 
-  const avgUtilization = Math.round(
-    teamMembers.reduce((s, m) => s + m.utilization, 0) / teamMembers.length
-  );
+  const avgUtilization =
+    teamMembers.length === 0
+      ? 0
+      : Math.round(
+          teamMembers.reduce((s, m) => s + m.utilization, 0) / teamMembers.length
+        );
   const overallocated = teamMembers.filter((m) => m.utilization > 100).length;
   const activeProjectCount = projects.filter(
     (p) => p.plan === "mvp" || p.plan === "growth"

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Caveat } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -10,6 +10,12 @@ const inter = Inter({
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const caveat = Caveat({
+  variable: "--font-caveat",
   subsets: ["latin"],
   display: "swap",
 });
@@ -38,7 +44,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
+        className={`${inter.variable} ${jetbrainsMono.variable} ${caveat.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
       >
         {children}
       </body>
