@@ -373,6 +373,57 @@ export const methodologyPillars: MethodologyPillar[] = [
   },
 ];
 
+export interface ServicePackage {
+  title: string;
+  description: string;
+  timeline: string;
+  icon: "brain" | "rocket" | "zap";
+  deliverables: string[];
+}
+
+/** Phases for ServicePackages section (services / how it runs). */
+export const servicePackages: ServicePackage[] = [
+  {
+    title: "Discovery & scope",
+    icon: "brain",
+    timeline: "1–2 weeks",
+    description:
+      "Align on users, outcomes, and constraints. Map the smallest shippable slice, risks, and how success will be measured before writing production code.",
+    deliverables: [
+      "Problem and user framing workshop",
+      "Scope document and milestone outline",
+      "Technical approach and stack fit",
+      "Success metrics and rollout plan",
+    ],
+  },
+  {
+    title: "Build & integrate",
+    icon: "rocket",
+    timeline: "2–6+ weeks",
+    description:
+      "Ship the agreed slice end-to-end: UX, implementation, integrations, and deploy. Weekly demos so direction stays tight and feedback lands in the product.",
+    deliverables: [
+      "Working software in staging and production",
+      "Integrations and data flows as scoped",
+      "Basic analytics or ops hooks where needed",
+      "Handoff notes for your team",
+    ],
+  },
+  {
+    title: "Launch & iterate",
+    icon: "zap",
+    timeline: "Ongoing",
+    description:
+      "Harden for real traffic, fix what breaks, and plan the next bets—whether that’s growth experiments, new features, or a retainer for steady velocity.",
+    deliverables: [
+      "Launch checklist and monitoring",
+      "Bug fixes and performance passes",
+      "Backlog for the next cycle",
+      "Optional ongoing support or scale engagement",
+    ],
+  },
+];
+
 export const experienceStats = [
   { value: "15+", label: "Projects shipped" },
   { value: "9+", label: "Years building software" },
