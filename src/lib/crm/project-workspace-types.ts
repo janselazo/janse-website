@@ -3,6 +3,25 @@ import type { MockSprint, TaskStatus } from "@/lib/crm/mock-data";
 /** Sprint row stored per project (same shape as MockSprint). */
 export type WorkspaceSprint = MockSprint;
 
+export interface WorkspaceTaskComment {
+  id: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
+}
+
+export interface WorkspaceTaskSubtask {
+  id: string;
+  title: string;
+  done: boolean;
+}
+
+export interface WorkspaceTaskAttachment {
+  id: string;
+  name: string;
+  url?: string;
+}
+
 export interface WorkspaceTask {
   id: string;
   projectId: string;
@@ -16,6 +35,16 @@ export interface WorkspaceTask {
   progress?: number;
   estimateHours?: number;
   priority?: "low" | "medium" | "high";
+  description?: string;
+  comments?: WorkspaceTaskComment[];
+  subtasks?: WorkspaceTaskSubtask[];
+  attachments?: WorkspaceTaskAttachment[];
+  /** Multi-assignee; first id is mirrored to assigneeId for legacy views */
+  assigneeIds?: string[];
+  milestoneTags?: string[];
+  /** Display-only times (HH:mm) paired with startDate/endDate */
+  startTime?: string;
+  endTime?: string;
 }
 
 export type RequestStatus = "new" | "in_review" | "done";

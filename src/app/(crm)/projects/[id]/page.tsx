@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState, type FormEvent } from "react";
+import { use, useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import {
   getMemberById,
@@ -24,6 +24,9 @@ import ProjectMeetingsView from "@/components/crm/project/ProjectMeetingsView";
 import ProjectResourcesView from "@/components/crm/project/ProjectResourcesView";
 import ProjectGanttView from "@/components/crm/project/ProjectGanttView";
 import ProjectMilestonesView from "@/components/crm/project/ProjectMilestonesView";
+import ProjectTasksView, {
+  type TaskCreateIntent,
+} from "@/components/crm/project/ProjectTasksView";
 import type {
   WorkspaceSprint,
   WorkspaceTask,
@@ -31,6 +34,7 @@ import type {
 
 const tabs: Tab[] = [
   { id: "sprint-board", label: "Sprint Board" },
+  { id: "tasks", label: "Tasks" },
   { id: "backlog", label: "Backlog" },
   { id: "requests", label: "Requests" },
   { id: "milestones", label: "Milestones" },
@@ -63,6 +67,13 @@ export default function ProjectDetailPage({ params }: Props) {
     formatISODate(new Date())
   );
   const [sprintEnd, setSprintEnd] = useState(() => formatISODate(new Date()));
+  const [taskCreateIntent, setTaskCreateIntent] =
+    useState<TaskCreateIntent>(null);
+
+  const onConsumedTaskCreateIntent = useCallback(
+    () => setTaskCreateIntent(null),
+    []
+  );
 
   const {
     workspace,
@@ -71,6 +82,13 @@ export default function ProjectDetailPage({ params }: Props) {
     setCurrentSprint,
     addTask,
     updateTask,
+    deleteTask,
+    addTaskComment,
+    addSubtask,
+    updateSubtask,
+    removeSubtask,
+    addTaskAttachment,
+    removeTaskAttachment,
     addRequest,
     updateRequestStatus,
     addScopeSection,
@@ -150,10 +168,8 @@ export default function ProjectDetailPage({ params }: Props) {
           onSetCurrentSprint={setCurrentSprint}
           onOpenCreateSprint={() => setSprintModalOpen(true)}
           onAddTask={(status) => {
-            const title = window.prompt("Task title");
-            if (!title?.trim()) return;
-            addTask({
-              title: title.trim(),
+            setActiveTab("tasks");
+            setTaskCreateIntent({
               status,
               sprintId: currentSprint.id,
             });
@@ -176,6 +192,24 @@ export default function ProjectDetailPage({ params }: Props) {
           </button>
         </div>
       );
+  } else if (activeTab === "tasks") {
+    panelContent = (
+      <ProjectTasksView
+        tasks={workspace.tasks}
+        sprints={sprints}
+        onAddTask={addTask}
+        onUpdateTask={updateTask}
+        onDeleteTask={deleteTask}
+        onAddTaskComment={addTaskComment}
+        onAddSubtask={addSubtask}
+        onUpdateSubtask={updateSubtask}
+        onRemoveSubtask={removeSubtask}
+        onAddAttachment={addTaskAttachment}
+        onRemoveAttachment={removeTaskAttachment}
+        createIntent={taskCreateIntent}
+        onConsumedCreateIntent={onConsumedTaskCreateIntent}
+      />
+    );
   } else if (activeTab === "backlog") {
     panelContent = (
       <ProjectBacklogView
@@ -521,7 +555,8 @@ function SprintBoard({
 }
 
 function TaskCard({ task }: { task: WorkspaceTask }) {
-  const assignee = task.assigneeId ? getMemberById(task.assigneeId) : null;
+  const primary = task.assigneeIds?.[0] ?? task.assigneeId;
+  const assignee = primary ? getMemberById(primary) : null;
   return (
     <div className="rounded-xl border border-border bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
       <p className="text-sm font-medium text-text-primary dark:text-zinc-100">

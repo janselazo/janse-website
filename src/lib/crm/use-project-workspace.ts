@@ -19,6 +19,7 @@ import {
   type WorkspaceResource,
   type WorkspaceSprint,
   type WorkspaceTask,
+  type WorkspaceTaskAttachment,
 } from "@/lib/crm/project-workspace-types";
 import { formatISODate } from "@/lib/crm/project-date-utils";
 
@@ -96,15 +97,18 @@ export function useProjectWorkspace(projectId: string | undefined) {
       assigneeId?: string | null;
       startDate?: string;
       endDate?: string;
-    }) => {
-      if (!projectId) return;
+    }): string | undefined => {
+      if (!projectId) return undefined;
       const today = formatISODate(new Date());
+      const assigneeId = input.assigneeId ?? null;
+      const id = newEntityId("task");
       const task: WorkspaceTask = {
-        id: newEntityId("task"),
+        id,
         projectId,
-        title: input.title.trim(),
+        title: input.title.trim() || "Untitled task",
         status: input.status,
-        assigneeId: input.assigneeId ?? null,
+        assigneeId,
+        assigneeIds: assigneeId ? [assigneeId] : undefined,
         sprintId: input.sprintId,
         startDate: input.startDate ?? today,
         endDate: input.endDate ?? input.startDate ?? today,
@@ -112,6 +116,7 @@ export function useProjectWorkspace(projectId: string | undefined) {
         estimateHours: 1,
       };
       mutate((w) => ({ ...w, tasks: [...w.tasks, task] }));
+      return id;
     },
     [projectId, mutate]
   );
@@ -131,6 +136,117 @@ export function useProjectWorkspace(projectId: string | undefined) {
       mutate((w) => ({
         ...w,
         tasks: w.tasks.filter((t) => t.id !== taskId),
+      }));
+    },
+    [mutate]
+  );
+
+  const addTaskComment = useCallback(
+    (taskId: string, authorName: string, body: string) => {
+      const text = body.trim();
+      if (!text) return;
+      mutate((w) => ({
+        ...w,
+        tasks: w.tasks.map((t) => {
+          if (t.id !== taskId) return t;
+          const comment = {
+            id: newEntityId("tcmt"),
+            authorName: authorName.trim() || "You",
+            body: text,
+            createdAt: new Date().toISOString(),
+          };
+          return { ...t, comments: [...(t.comments ?? []), comment] };
+        }),
+      }));
+    },
+    [mutate]
+  );
+
+  const addSubtask = useCallback(
+    (taskId: string, title: string) => {
+      const text = title.trim();
+      if (!text) return;
+      mutate((w) => ({
+        ...w,
+        tasks: w.tasks.map((t) => {
+          if (t.id !== taskId) return t;
+          const st = {
+            id: newEntityId("sub"),
+            title: text,
+            done: false,
+          };
+          return { ...t, subtasks: [...(t.subtasks ?? []), st] };
+        }),
+      }));
+    },
+    [mutate]
+  );
+
+  const updateSubtask = useCallback(
+    (taskId: string, subtaskId: string, patch: { title?: string; done?: boolean }) => {
+      mutate((w) => ({
+        ...w,
+        tasks: w.tasks.map((t) => {
+          if (t.id !== taskId) return t;
+          return {
+            ...t,
+            subtasks: (t.subtasks ?? []).map((s) =>
+              s.id === subtaskId ? { ...s, ...patch } : s
+            ),
+          };
+        }),
+      }));
+    },
+    [mutate]
+  );
+
+  const removeSubtask = useCallback(
+    (taskId: string, subtaskId: string) => {
+      mutate((w) => ({
+        ...w,
+        tasks: w.tasks.map((t) => {
+          if (t.id !== taskId) return t;
+          return {
+            ...t,
+            subtasks: (t.subtasks ?? []).filter((s) => s.id !== subtaskId),
+          };
+        }),
+      }));
+    },
+    [mutate]
+  );
+
+  const addTaskAttachment = useCallback(
+    (taskId: string, att: Omit<WorkspaceTaskAttachment, "id">) => {
+      const name = att.name.trim();
+      if (!name) return;
+      mutate((w) => ({
+        ...w,
+        tasks: w.tasks.map((t) => {
+          if (t.id !== taskId) return t;
+          const row: WorkspaceTaskAttachment = {
+            id: newEntityId("att"),
+            name,
+            url: att.url?.trim() || undefined,
+          };
+          return { ...t, attachments: [...(t.attachments ?? []), row] };
+        }),
+      }));
+    },
+    [mutate]
+  );
+
+  const removeTaskAttachment = useCallback(
+    (taskId: string, attachmentId: string) => {
+      mutate((w) => ({
+        ...w,
+        tasks: w.tasks.map((t) => {
+          if (t.id !== taskId) return t;
+          return {
+            ...t,
+            attachments: (t.attachments ?? []).filter((a) => a.id !== attachmentId),
+          };
+        }),
       }));
     },
     [mutate]
@@ -237,6 +353,12 @@ export function useProjectWorkspace(projectId: string | undefined) {
     addTask,
     updateTask,
     deleteTask,
+    addTaskComment,
+    addSubtask,
+    updateSubtask,
+    removeSubtask,
+    addTaskAttachment,
+    removeTaskAttachment,
     addRequest,
     updateRequest,
     updateRequestStatus: (id: string, status: RequestStatus) =>

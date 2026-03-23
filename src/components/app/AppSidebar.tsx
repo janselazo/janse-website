@@ -18,12 +18,14 @@ import {
   Settings,
   LogOut,
   ChevronDown,
+  MessageSquare,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { projects } from "@/lib/crm/mock-data";
 
 const prospectsNav = [
   { href: "/leads", label: "Leads", icon: UsersRound },
+  { href: "/conversations", label: "Conversations", icon: MessageSquare },
   { href: "/calendar", label: "Appointments", icon: Calendar },
   { href: "/deals", label: "Deals", icon: Handshake },
   { href: "/clients", label: "Clients", icon: Building2 },

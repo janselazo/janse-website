@@ -420,15 +420,6 @@ function NewProjectModal({
                     aria-hidden
                   />
                 </div>
-                {teamMembers.length === 0 ? (
-                  <p className="mt-1.5 text-xs text-amber-800 dark:text-amber-200/90">
-                    No members yet. Open{" "}
-                    <Link href="/team" className="font-medium underline">
-                      Team
-                    </Link>{" "}
-                    and add people.
-                  </p>
-                ) : null}
               </div>
             </div>
 
