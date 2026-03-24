@@ -388,8 +388,8 @@ function SalesTab() {
         <MiniKpi label="Open Deals" value={String(openDeals)} />
       </div>
 
-      {/* Lead Funnel */}
-      <ChartCard title="Lead Funnel">
+      {/* Opportunities funnel */}
+      <ChartCard title="Opportunities funnel">
         <div className="space-y-3">
           {funnel.map((stage) => (
             <div key={stage.stage} className="flex items-center gap-3">
@@ -413,8 +413,8 @@ function SalesTab() {
       </ChartCard>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Lead Sources */}
-        <ChartCard title="Lead Sources">
+        {/* Opportunity sources */}
+        <ChartCard title="Opportunity sources">
           <div className="flex flex-col items-center gap-6 sm:flex-row">
             <div className="h-[200px] w-[200px]">
               <ResponsiveContainer width="100%" height="100%">

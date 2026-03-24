@@ -29,7 +29,7 @@ export type ClientTableRow = {
     name: string | null;
     email: string | null;
     company: string | null;
-    /** Same `lead.source` as on the Leads table */
+    /** Same `lead.source` as on the Prospects table */
     source: string | null;
   } | null;
   /** Latest non-empty deal title for the linked lead (by deal.updated_at) */
@@ -39,7 +39,7 @@ export type ClientTableRow = {
 const neutralChipBase =
   "inline-flex rounded-full border border-border bg-white px-2.5 py-0.5 text-xs font-semibold dark:border-zinc-600 dark:bg-zinc-900/35";
 
-/** Match Leads table source pill colors */
+/** Match Prospects table source pill colors */
 const sourceTextClasses: Record<string, string> = {
   website: "text-sky-700 dark:text-sky-400",
   referral: "text-teal-700 dark:text-teal-400",
@@ -144,7 +144,7 @@ export default function ClientsView({ clients }: { clients: ClientTableRow[] }) 
     const label = c.name?.trim() || c.email?.trim() || "this client";
     if (
       !confirm(
-        `Delete ${label}? Linked projects will be removed. Leads stay but lose the client link.`
+        `Delete ${label}? Linked projects will be removed. Prospects stay but lose the client link.`
       )
     ) {
       return;
@@ -163,8 +163,8 @@ export default function ClientsView({ clients }: { clients: ClientTableRow[] }) 
   if (snapshot.length === 0) {
     return (
       <div className="mt-6 rounded-2xl border border-dashed border-border bg-white py-16 text-center text-sm text-text-secondary">
-        No clients yet. A client record is created when a deal for a lead reaches
-        Won or Lost (once per lead).
+        No clients yet. A client record is created when a deal for a prospect reaches
+        Won or Lost (once per prospect).
       </div>
     );
   }
@@ -390,8 +390,8 @@ export default function ClientsView({ clients }: { clients: ClientTableRow[] }) 
                           disabled={editingId !== null || !c.linkedLead}
                           title={
                             c.linkedLead
-                              ? "Create deal (linked lead)"
-                              : "No linked lead — deals are tied to leads"
+                              ? "Create deal (linked prospect)"
+                              : "No linked prospect — deals are tied to prospects"
                           }
                           className="inline-flex items-center justify-center rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-zinc-400 dark:hover:bg-zinc-800"
                           aria-label={`Create deal for ${deleteLabel}`}

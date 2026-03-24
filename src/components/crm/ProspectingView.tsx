@@ -193,7 +193,7 @@ export default function ProspectingView() {
         </h1>
         <p className="mt-1 text-sm text-text-secondary">
           Complete your income-producing activities every day to generate more
-          leads, appointments, and deals
+          opportunities, appointments, and deals
         </p>
       </div>
 
@@ -1416,7 +1416,7 @@ function TasksTab({ today }: { today: Date }) {
           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary/50" />
           <input
             type="text"
-            placeholder="Search tasks or leads…"
+            placeholder="Search tasks or opportunities…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-48 rounded-lg border border-border bg-white py-1.5 pl-8 pr-3 text-sm text-text-primary outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
@@ -1671,7 +1671,7 @@ function AddTaskModal({
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-text-primary">
-              Linked Lead / Company
+              Linked opportunity / company
             </label>
             <input
               name="linkedLead"

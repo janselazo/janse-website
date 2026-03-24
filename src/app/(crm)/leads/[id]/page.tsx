@@ -46,10 +46,10 @@ export default async function LeadDetailPage({ params }: Props) {
         href="/leads"
         className="text-sm text-accent hover:underline"
       >
-        ← All leads
+        ← All prospects
       </Link>
       <h1 className="mt-4 heading-display text-2xl font-bold text-text-primary">
-        {lead.name || lead.email || "Lead"}
+        {lead.name || lead.email || "Prospect"}
       </h1>
       <p className="text-sm text-text-secondary">
         Created{" "}

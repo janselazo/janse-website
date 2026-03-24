@@ -23,8 +23,8 @@ import { createClient } from "@/lib/supabase/client";
 import { projects as seedProjects } from "@/lib/crm/mock-data";
 import { getMergedProjectsList } from "@/lib/crm/projects-storage";
 
-const prospectsNav = [
-  { href: "/leads", label: "Leads", icon: UsersRound },
+const opportunitiesNav = [
+  { href: "/leads", label: "Prospects", icon: UsersRound },
   { href: "/deals", label: "Deals", icon: Handshake },
   { href: "/conversations", label: "Conversations", icon: MessageSquare },
   { href: "/calendar", label: "Appointments", icon: Calendar },
@@ -104,9 +104,9 @@ export default function AppSidebar() {
           </nav>
         </div>
 
-        {/* Prospects */}
-        <NavGroup label="Prospects">
-          {prospectsNav.map(({ href, label, icon: Icon }) => (
+        {/* Opportunities */}
+        <NavGroup label="Opportunities">
+          {opportunitiesNav.map(({ href, label, icon: Icon }) => (
             <NavLink key={href} href={href} active={isActive(pathname, href)}>
               <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
               {label}
@@ -163,7 +163,7 @@ export default function AppSidebar() {
           href="/"
           className="block rounded-xl px-3 py-2 text-xs text-text-secondary hover:bg-surface hover:text-text-primary dark:text-zinc-500 dark:hover:bg-zinc-800/70 dark:hover:text-zinc-200"
         >
-          ← Marketing site
+          ← Website
         </Link>
         <NavLink href="/settings" active={isActive(pathname, "/settings")}>
           <Settings className="h-4 w-4 shrink-0 opacity-80" aria-hidden />

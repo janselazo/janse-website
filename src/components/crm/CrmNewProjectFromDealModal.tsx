@@ -31,7 +31,7 @@ export default function CrmNewProjectFromDealModal({
     void fetchDealPrefillForNewProject(dealId).then((p) => {
       if (cancelled) return;
       if (!p) {
-        setError("Could not load this deal or its lead.");
+        setError("Could not load this deal or its prospect.");
         setPrefill(null);
       } else {
         setPrefill(p);

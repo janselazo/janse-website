@@ -61,7 +61,7 @@ export default async function PortalLayout({
             href="/"
             className="text-sm text-accent hover:underline"
           >
-            Marketing site
+            Website
           </Link>
         </div>
       </header>

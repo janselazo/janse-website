@@ -567,7 +567,7 @@ export async function createDealRecord(input: {
   if (!user) return { error: "Unauthorized" };
 
   const leadId = input.leadId.trim();
-  if (!leadId) return { error: "Select a lead." };
+  if (!leadId) return { error: "Select a prospect." };
 
   if (
     !DEAL_PIPELINE_STAGES.includes(

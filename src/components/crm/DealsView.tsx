@@ -184,7 +184,7 @@ export default function DealsView({
             Deals
           </h1>
           <p className="mt-1 text-sm text-text-secondary">
-            Track opportunities from prospect to close
+            Track deals from first touch to close
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -320,7 +320,7 @@ export default function DealsView({
                           title={
                             deal.leadId
                               ? "Quick task"
-                              : "Quick tasks need a linked lead"
+                              : "Quick tasks need a linked prospect"
                           }
                           className="inline-flex items-center justify-center rounded-md p-1.5 text-zinc-600 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-zinc-400 dark:hover:bg-zinc-800"
                           aria-label={`Add task for ${taskLabel}`}
@@ -704,7 +704,7 @@ function DealsTableRow({
                 {draft.contactEmail}
               </p>
               <p className="mt-1 text-xs text-text-secondary dark:text-zinc-500">
-                Edit contact on the lead record.
+                Edit contact on the prospect record.
               </p>
             </div>
           ) : (
@@ -797,7 +797,7 @@ function DealsTableRow({
                   title={
                     deal.leadId
                       ? "Quick task"
-                      : "Quick tasks need a linked lead"
+                      : "Quick tasks need a linked prospect"
                   }
                   className={`${iconActionClass} text-zinc-600 hover:bg-zinc-100 disabled:cursor-not-allowed dark:text-zinc-400 dark:hover:bg-zinc-800`}
                   aria-label={`Add task for ${deal.title?.trim() || deal.company || "deal"}`}
@@ -827,7 +827,7 @@ function DealsTableRow({
                   title={
                     deal.leadId
                       ? "Quick task"
-                      : "Quick tasks need a linked lead"
+                      : "Quick tasks need a linked prospect"
                   }
                   className={`${iconActionClass} text-zinc-600 hover:bg-zinc-100 disabled:cursor-not-allowed dark:text-zinc-400 dark:hover:bg-zinc-800`}
                   aria-label={`Add task for ${deal.title?.trim() || deal.company || "deal"}`}
@@ -991,7 +991,7 @@ function DealFormFields({
       </div>
       {lockContactFields && (
         <p className="sm:col-span-2 text-xs text-text-secondary">
-          Contact details are tied to the lead. Edit them on the lead record.
+          Contact details are tied to the prospect. Edit them on the prospect record.
         </p>
       )}
     </div>
@@ -1069,7 +1069,7 @@ function CreateDealModal({
     e.preventDefault();
     setError(null);
     if (!leadId || !selected) {
-      setError("Select a lead.");
+      setError("Select a prospect.");
       return;
     }
     setPending(true);
@@ -1112,13 +1112,13 @@ function CreateDealModal({
 
         {leadOptions.length === 0 ? (
           <p className="text-sm text-text-secondary">
-            No leads yet. Add a lead first, then you can create a deal for them.
+            No prospects yet. Add a prospect first, then you can create a deal for them.
           </p>
         ) : (
           <>
             <div>
               <label className="mb-1 block text-sm font-medium text-text-primary">
-                Related lead
+                Related prospect
               </label>
               <select
                 name="lead_id"
@@ -1130,7 +1130,7 @@ function CreateDealModal({
                 }}
                 className={INPUT_CLASS}
               >
-                <option value="">Select a lead…</option>
+                <option value="">Select a prospect…</option>
                 {leadOptions.map((o) => (
                   <option key={o.id} value={o.id}>
                     {o.label}

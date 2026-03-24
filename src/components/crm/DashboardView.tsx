@@ -466,13 +466,13 @@ export default function DashboardView({
         </div>
       </div>
 
-      {/* Leads & Appointments + Deals Activity */}
+      {/* Opportunities & Appointments + Deals Activity */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Leads & Appointments chart */}
+        {/* Opportunities & Appointments chart */}
         <div className={`${dashCard} p-5`}>
           <div className="flex items-center justify-between">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-text-secondary/60 dark:text-zinc-500">
-              Leads & Appointments
+              Opportunities & Appointments
             </p>
             <span className="text-xs text-text-secondary dark:text-zinc-500">
               {rangeLabel}
@@ -498,7 +498,7 @@ export default function DashboardView({
                 />
                 <Legend wrapperStyle={{ fontSize: 11, color: chartTheme.legendColor }} />
                 <Bar dataKey="appointments" name="Appointments" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={20} />
-                <Bar dataKey="leads" name="Leads" fill="#93c5fd" radius={[4, 4, 0, 0]} maxBarSize={20} />
+                <Bar dataKey="leads" name="Opportunities" fill="#93c5fd" radius={[4, 4, 0, 0]} maxBarSize={20} />
               </BarChart>
             </ResponsiveContainer>
           </div>

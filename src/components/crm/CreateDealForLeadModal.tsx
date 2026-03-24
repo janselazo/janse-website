@@ -40,7 +40,7 @@ export default function CreateDealForLeadModal({
   const [pending, setPending] = useState(false);
   const [expectedClose, setExpectedClose] = useState("");
 
-  const leadLabel = lead.name?.trim() || lead.email?.trim() || "this lead";
+  const leadLabel = lead.name?.trim() || lead.email?.trim() || "this prospect";
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
