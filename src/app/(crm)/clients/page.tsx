@@ -38,7 +38,8 @@ export default async function ClientsPage() {
         </p>
       ) : !clients || clients.length === 0 ? (
         <div className="mt-6 rounded-2xl border border-dashed border-border bg-white py-16 text-center text-sm text-text-secondary">
-          No clients yet. Clients will appear here when leads are converted.
+          No clients yet. A client record is created when a deal for a lead reaches
+          Closed Won or Closed Lost (once per lead).
         </div>
       ) : (
         <div className="mt-6 overflow-x-auto rounded-2xl border border-border bg-white shadow-sm">

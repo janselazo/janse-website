@@ -48,7 +48,7 @@ export default function ProjectScopeView({
 
       {sections.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-border py-12 text-center text-sm text-text-secondary dark:border-zinc-700">
-          No scope sections yet. Add a section to capture requirements.
+          No scope sections yet. Add a section to capture scope.
         </p>
       ) : (
         <div className="space-y-4">
@@ -75,7 +75,7 @@ export default function ProjectScopeView({
                     }))
                   }
                   className="min-w-0 flex-1 rounded-lg border border-border px-2 py-1.5 text-sm dark:border-zinc-600 dark:bg-zinc-800"
-                  placeholder="Add requirement line"
+                  placeholder="Add line"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();

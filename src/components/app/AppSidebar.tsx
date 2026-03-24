@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   Target,
   FolderKanban,
-  GanttChart,
   UsersRound,
   Users,
   BarChart3,
@@ -25,15 +24,14 @@ import { projects } from "@/lib/crm/mock-data";
 
 const prospectsNav = [
   { href: "/leads", label: "Leads", icon: UsersRound },
+  { href: "/deals", label: "Deals", icon: Handshake },
   { href: "/conversations", label: "Conversations", icon: MessageSquare },
   { href: "/calendar", label: "Appointments", icon: Calendar },
-  { href: "/deals", label: "Deals", icon: Handshake },
 ];
 
 const workNav = [
   { href: "/clients", label: "Clients", icon: Building2 },
   { href: "/projects", label: "Projects", icon: FolderKanban },
-  { href: "/timeline", label: "Timeline", icon: GanttChart },
 ];
 
 const agencyNav = [

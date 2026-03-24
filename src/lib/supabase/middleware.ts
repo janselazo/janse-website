@@ -12,7 +12,6 @@ const AGENCY_APP_PREFIXES = [
   "/projects",
   "/calendar",
   "/settings",
-  "/timeline",
 
   "/team",
   "/capacity",

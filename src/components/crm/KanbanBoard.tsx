@@ -98,9 +98,9 @@ export default function KanbanBoard<T extends { id: string }>({
         return (
           <div
             key={col.id}
-            className={`flex w-[min(100%,20.5rem)] shrink-0 flex-col rounded-2xl bg-[#eceef2] transition-[box-shadow,background-color] dark:bg-zinc-800/55 ${
+            className={`flex w-[min(100%,20.5rem)] shrink-0 flex-col rounded-2xl border border-zinc-200/80 bg-zinc-50/95 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-[box-shadow,background-color,border-color] dark:border-zinc-700/70 dark:bg-zinc-900/50 dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] ${
               isOver
-                ? "ring-2 ring-violet-500/35 ring-offset-2 ring-offset-surface dark:ring-violet-400/30 dark:ring-offset-zinc-950"
+                ? "ring-2 ring-violet-500/35 ring-offset-2 ring-offset-white dark:ring-violet-400/30 dark:ring-offset-zinc-950"
                 : ""
             }`}
             onDragOver={(e) => handleDragOver(e, col.id)}
@@ -124,7 +124,7 @@ export default function KanbanBoard<T extends { id: string }>({
                 <button
                   type="button"
                   onClick={() => onAddNew(col.id)}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-lg font-light leading-none text-zinc-500 transition-colors hover:bg-white/70 hover:text-violet-600 dark:text-zinc-400 dark:hover:bg-zinc-700/60 dark:hover:text-violet-300"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-lg font-light leading-none text-zinc-500 transition-colors hover:bg-white hover:text-violet-600 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-violet-300"
                   aria-label={`Add to ${col.label}`}
                 >
                   +
@@ -132,7 +132,7 @@ export default function KanbanBoard<T extends { id: string }>({
               )}
             </div>
 
-            <div className="flex min-h-[5rem] flex-1 flex-col gap-3 px-2.5 pb-2 pt-0.5">
+            <div className="flex min-h-[5rem] flex-1 flex-col gap-3 px-2.5 pb-3 pt-0.5">
               {col.items.length === 0 && !isOver ? (
                 <div className="rounded-xl py-10 text-center text-[12px] font-medium text-zinc-400/90 dark:text-zinc-500">
                   No projects
@@ -158,16 +158,6 @@ export default function KanbanBoard<T extends { id: string }>({
                 </div>
               )}
             </div>
-
-            {onAddNew && (
-              <button
-                type="button"
-                onClick={() => onAddNew(col.id)}
-                className="mx-2 mb-2.5 rounded-lg px-2 py-2 text-left text-[12px] font-semibold text-zinc-500 transition-colors hover:bg-white/60 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700/40 dark:hover:text-zinc-200"
-              >
-                + Add project
-              </button>
-            )}
           </div>
         );
       })}

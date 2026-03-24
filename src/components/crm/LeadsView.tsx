@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Loader2, Search, Trash2 } from "lucide-react";
 import {
   LEAD_STAGE_LABELS,
   LEAD_PROJECT_TYPE_OPTIONS,
   type LeadStage,
 } from "@/lib/crm/mock-data";
-import { createLead } from "@/app/(crm)/actions/crm";
+import { createLead, deleteLead } from "@/app/(crm)/actions/crm";
 
 export interface Lead {
   id: string;
@@ -130,6 +130,28 @@ export default function LeadsView({ leads }: { leads: Lead[] }) {
 }
 
 function LeadsTable({ leads }: { leads: Lead[] }) {
+  const router = useRouter();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  async function handleDeleteLead(lead: Lead) {
+    const label = lead.name?.trim() || lead.email?.trim() || "this lead";
+    if (
+      !confirm(
+        `Delete ${label}? This will remove the lead and its linked deal data.`
+      )
+    ) {
+      return;
+    }
+    setDeletingId(lead.id);
+    const res = await deleteLead(lead.id);
+    setDeletingId(null);
+    if ("error" in res && res.error) {
+      window.alert(res.error);
+      return;
+    }
+    router.refresh();
+  }
+
   if (leads.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-border bg-white py-16 text-center text-sm text-text-secondary">
@@ -164,6 +186,8 @@ function LeadsTable({ leads }: { leads: Lead[] }) {
               .join("")
               .toUpperCase()
               .slice(0, 2);
+            const deleteLabel =
+              lead.name?.trim() || lead.email?.trim() || "this lead";
             return (
               <tr key={lead.id} className="transition-colors hover:bg-surface/50">
                 <td className="px-4 py-3">
@@ -217,12 +241,31 @@ function LeadsTable({ leads }: { leads: Lead[] }) {
                   {formatDate(lead.created_at)}
                 </td>
                 <td className="px-4 py-3">
-                  <Link
-                    href={`/leads/${lead.id}`}
-                    className="text-xs font-medium text-accent hover:underline"
-                  >
-                    Edit
-                  </Link>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <Link
+                      href={`/leads/${lead.id}`}
+                      className="text-xs font-medium text-accent hover:underline"
+                    >
+                      Edit
+                    </Link>
+                    <button
+                      type="button"
+                      disabled={deletingId === lead.id}
+                      onClick={() => void handleDeleteLead(lead)}
+                      aria-busy={deletingId === lead.id}
+                      className="inline-flex items-center justify-center rounded-md p-1.5 text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-950/40"
+                      aria-label={`Delete ${deleteLabel}`}
+                    >
+                      {deletingId === lead.id ? (
+                        <Loader2
+                          className="h-4 w-4 shrink-0 animate-spin"
+                          aria-hidden
+                        />
+                      ) : (
+                        <Trash2 className="h-4 w-4 shrink-0" aria-hidden />
+                      )}
+                    </button>
+                  </div>
                 </td>
               </tr>
             );

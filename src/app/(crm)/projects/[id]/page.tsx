@@ -4,6 +4,7 @@ import { use, useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import {
   getMemberById,
+  projectClientDisplayLabel,
   projectTeamDisplayName,
   PLAN_COLORS,
   PLAN_LABELS,
@@ -39,7 +40,7 @@ const tabs: Tab[] = [
   { id: "requests", label: "Requests" },
   { id: "milestones", label: "Milestones" },
   { id: "gantt", label: "Gantt" },
-  { id: "scope", label: "Scope Requirements" },
+  { id: "scope", label: "Scope" },
   { id: "meetings", label: "Meetings" },
   { id: "resources", label: "Resources" },
 ];
@@ -304,6 +305,13 @@ export default function ProjectDetailPage({ params }: Props) {
               </span>
             </MetaField>
           ) : null}
+          <MetaField label="Client">
+            <span className="font-medium text-text-primary dark:text-zinc-100">
+              {project.clientId?.trim()
+                ? projectClientDisplayLabel(project)
+                : "—"}
+            </span>
+          </MetaField>
           <MetaField label="Team name">
             <span className="font-medium text-text-primary dark:text-zinc-100">
               {teamLabel}

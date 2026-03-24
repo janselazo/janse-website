@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import {
   projects as initialProjects,
+  projectClientDisplayLabel,
   projectTeamDisplayName,
   PLAN_COLORS,
   PLAN_LABELS,
@@ -11,6 +12,8 @@ import {
   type PlanStage,
   type MockProject,
 } from "@/lib/crm/mock-data";
+import { createClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import {
   ArrowDownUp,
   Calendar,
@@ -160,8 +163,8 @@ export default function ProjectsPage() {
       labels.add(projectTeamDisplayName(p));
     }
     return Array.from(labels).sort((a, b) => {
-      if (a === "Unassigned") return -1;
-      if (b === "Unassigned") return 1;
+      if (a === "Member") return -1;
+      if (b === "Member") return 1;
       return a.localeCompare(b);
     });
   }, [projectList]);
@@ -176,10 +179,12 @@ export default function ProjectsPage() {
       if (!q) return true;
       const team = projectTeamDisplayName(p).toLowerCase();
       const type = (p.projectType ?? "").toLowerCase();
+      const client = projectClientDisplayLabel(p).toLowerCase();
       return (
         p.title.toLowerCase().includes(q) ||
         team.includes(q) ||
         type.includes(q) ||
+        client.includes(q) ||
         projectRefId(p.id).toLowerCase().includes(q)
       );
     });
@@ -243,8 +248,8 @@ export default function ProjectsPage() {
           </div>
           <p className="mt-2 text-sm text-text-secondary dark:text-zinc-400">
             {view === "kanban"
-              ? "Drag cards between columns to update plan stage."
-              : "Sort and filter the full project list."}
+              ? "Drag cards between columns to update plan stage. Each project is linked to a client."
+              : "Sort and filter the full project list. Each project is linked to a client."}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -266,7 +271,7 @@ export default function ProjectsPage() {
           <button
             type="button"
             onClick={() => setModalOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#5b21b6] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.06)] transition-colors hover:bg-[#4c1d95] dark:bg-violet-600 dark:hover:bg-violet-500"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.06)] transition-colors hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500"
           >
             + Add project
           </button>
@@ -423,7 +428,7 @@ function ProjectCard({
 }) {
   const teamLabel = projectTeamDisplayName(project);
   const initials =
-    teamLabel === "Unassigned"
+    teamLabel === "Member"
       ? "?"
       : teamLabel
           .split(/\s+/)
@@ -453,6 +458,9 @@ function ProjectCard({
       >
         <p className="text-[15px] font-semibold leading-snug tracking-tight text-zinc-900 dark:text-zinc-50">
           {project.title}
+        </p>
+        <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+          {projectClientDisplayLabel(project)}
         </p>
         <div className="mt-3 flex flex-wrap gap-1.5">
           {project.projectType ? (
@@ -505,6 +513,7 @@ function ProjectTable({ projects: items }: { projects: MockProject[] }) {
         <thead>
           <tr className="border-b border-border">
             <th className="px-4 py-3 font-semibold text-text-secondary">Project</th>
+            <th className="px-4 py-3 font-semibold text-text-secondary">Client</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">Type</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">Plan</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">Team name</th>
@@ -527,6 +536,9 @@ function ProjectTable({ projects: items }: { projects: MockProject[] }) {
                   >
                     {p.title}
                   </Link>
+                </td>
+                <td className="px-4 py-3 text-text-secondary">
+                  {projectClientDisplayLabel(p)}
                 </td>
                 <td className="px-4 py-3 text-text-secondary">
                   {p.projectType ?? "—"}
@@ -570,6 +582,19 @@ function ProjectTable({ projects: items }: { projects: MockProject[] }) {
   );
 }
 
+type ClientPickerRow = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  company: string | null;
+};
+
+function clientPickerLabel(c: ClientPickerRow): string {
+  const parts = [c.name?.trim(), c.company?.trim()].filter(Boolean) as string[];
+  if (parts.length > 0) return parts.join(" · ");
+  return c.email?.trim() || "Unnamed client";
+}
+
 function NewProjectModal({
   onClose,
   onAdd,
@@ -587,6 +612,50 @@ function NewProjectModal({
   const [endDate, setEndDate] = useState("");
   const [budget, setBudget] = useState("");
   const [website, setWebsite] = useState("");
+  const [clients, setClients] = useState<ClientPickerRow[]>([]);
+  const [clientsLoading, setClientsLoading] = useState(false);
+  const [clientsError, setClientsError] = useState<string | null>(null);
+  const [clientId, setClientId] = useState("");
+
+  useEffect(() => {
+    if (!isSupabaseConfigured()) {
+      setClients([]);
+      setClientsError(null);
+      return;
+    }
+    let cancelled = false;
+    setClientsLoading(true);
+    setClientsError(null);
+    void (async () => {
+      try {
+        const sb = createClient();
+        const { data, error } = await sb
+          .from("client")
+          .select("id, name, email, company")
+          .order("created_at", { ascending: false })
+          .limit(300);
+        if (cancelled) return;
+        if (error) {
+          setClientsError(error.message);
+          setClients([]);
+        } else {
+          setClients(data ?? []);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setClientsError(
+            e instanceof Error ? e.message : "Failed to load clients"
+          );
+          setClients([]);
+        }
+      } finally {
+        if (!cancelled) setClientsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const fieldClass =
     "w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-text-primary shadow-sm outline-none transition-[box-shadow,border-color] placeholder:text-text-secondary/45 focus:border-accent focus:ring-2 focus:ring-accent/15";
@@ -599,6 +668,9 @@ function NewProjectModal({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
+    if (!isSupabaseConfigured() || !clientId.trim()) return;
+    const client = clients.find((c) => c.id === clientId);
+    if (!client) return;
     const budgetRaw = budget.replace(/,/g, "").trim();
     let budgetNum: number | null = null;
     if (budgetRaw !== "") {
@@ -613,6 +685,8 @@ function NewProjectModal({
       id: createProjectId(),
       title: title.trim(),
       plan,
+      clientId: client.id,
+      clientName: clientPickerLabel(client),
       teamId: member ? member.teamId : "team-general",
       teamName: name || null,
       projectType,
@@ -624,6 +698,16 @@ function NewProjectModal({
       taskCount: 0,
     });
   }
+
+  const canPickClient =
+    isSupabaseConfigured() &&
+    !clientsLoading &&
+    !clientsError &&
+    clients.length > 0;
+  const submitDisabled =
+    !title.trim() ||
+    !canPickClient ||
+    !clientId.trim();
 
   return (
     <div
@@ -651,11 +735,57 @@ function NewProjectModal({
             New project
           </h2>
           <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">
-            Name your build, set status and type, then pick a target date or leave
-            it open as TBD.
+            Link the project to a client, then name your build and set status and
+            type. Target date is optional (TBD if skipped).
           </p>
 
           <div className="mt-8 space-y-5">
+            <div>
+              <label htmlFor="np-client" className={labelClass}>
+                Client
+              </label>
+              {!isSupabaseConfigured() ? (
+                <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-100">
+                  Configure Supabase to load clients and link this project.
+                </p>
+              ) : clientsLoading ? (
+                <p className="text-sm text-text-secondary">Loading clients…</p>
+              ) : clientsError ? (
+                <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
+                  {clientsError}
+                </p>
+              ) : clients.length === 0 ? (
+                <p className="text-sm text-text-secondary">
+                  No clients yet. Add one under{" "}
+                  <Link href="/clients" className="font-medium text-accent hover:underline">
+                    Clients
+                  </Link>{" "}
+                  first (for example when a deal closes).
+                </p>
+              ) : (
+                <div className="relative">
+                  <select
+                    id="np-client"
+                    required
+                    value={clientId}
+                    onChange={(e) => setClientId(e.target.value)}
+                    className={selectClass}
+                  >
+                    <option value="">Select a client…</option>
+                    {clients.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {clientPickerLabel(c)}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary/55"
+                    aria-hidden
+                  />
+                </div>
+              )}
+            </div>
+
             <div>
               <label htmlFor="np-title" className={labelClass}>
                 Project name
@@ -707,7 +837,7 @@ function NewProjectModal({
                     className={selectClass}
                     disabled={teamMembers.length === 0}
                   >
-                    <option value="">Unassigned</option>
+                    <option value="">Member</option>
                     {teamMembers.map((m) => (
                       <option key={m.id} value={m.id}>
                         {m.name}
@@ -806,7 +936,8 @@ function NewProjectModal({
             </button>
             <button
               type="submit"
-              className="rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-hover"
+              disabled={submitDisabled}
+              className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-600 dark:hover:bg-blue-500"
             >
               Add project
             </button>

@@ -1,8 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import KanbanBoard, { type KanbanColumn } from "@/components/crm/KanbanBoard";
+import {
+  createDealRecord,
+  deleteDealRecord,
+  updateDealRecord,
+  updateDealStage,
+} from "@/app/(crm)/actions/crm";
+import type { LeadDealPickerOption } from "@/lib/crm/fetch-leads-for-deal-picker";
 import {
   type MockDeal,
   type DealStage,
@@ -44,12 +52,26 @@ function formatDate(iso: string) {
   });
 }
 
-export default function DealsView({ deals }: { deals: MockDeal[] }) {
+export default function DealsView({
+  deals,
+  persistDeals = false,
+  leadPickerOptions = [],
+}: {
+  deals: MockDeal[];
+  persistDeals?: boolean;
+  leadPickerOptions?: LeadDealPickerOption[];
+}) {
+  const router = useRouter();
   const [view, setView] = useState<ViewMode>("table");
   const [search, setSearch] = useState("");
   const [localDeals, setLocalDeals] = useState<MockDeal[]>(deals);
   const [modalOpen, setModalOpen] = useState(false);
+  const [createDealOpen, setCreateDealOpen] = useState(false);
   const [editing, setEditing] = useState<MockDeal | null>(null);
+
+  useEffect(() => {
+    setLocalDeals(deals);
+  }, [deals]);
 
   const filtered = localDeals.filter((d) => {
     if (!search) return true;
@@ -70,7 +92,16 @@ export default function DealsView({ deals }: { deals: MockDeal[] }) {
 
   const totalValue = filtered.reduce((sum, d) => sum + d.value, 0);
 
-  function handleMove(itemId: string, _from: string, to: string) {
+  async function handleMove(itemId: string, _from: string, to: string) {
+    if (persistDeals) {
+      const res = await updateDealStage(itemId, to);
+      if (res.error) {
+        alert(res.error);
+        return;
+      }
+      router.refresh();
+      return;
+    }
     setLocalDeals((prev) =>
       prev.map((d) =>
         d.id === itemId ? { ...d, stage: to as DealStage } : d
@@ -78,14 +109,40 @@ export default function DealsView({ deals }: { deals: MockDeal[] }) {
     );
   }
 
-  function handleSave(updated: MockDeal) {
+  function handleLocalSave(updated: MockDeal) {
     setLocalDeals((prev) =>
       prev.map((d) => (d.id === updated.id ? updated : d))
     );
     setEditing(null);
   }
 
-  function handleDelete(id: string) {
+  async function handlePersistSave(updated: MockDeal) {
+    const res = await updateDealRecord({
+      dealId: updated.id,
+      title: updated.title,
+      company: updated.company,
+      value: updated.value,
+      stage: updated.stage,
+      expectedClose: updated.expectedClose.trim() || null,
+      contactEmail: updated.contactEmail.trim() || null,
+    });
+    if (res.error) return res.error;
+    setEditing(null);
+    router.refresh();
+    return undefined;
+  }
+
+  async function handleDelete(id: string) {
+    if (persistDeals) {
+      const res = await deleteDealRecord(id);
+      if (res.error) {
+        alert(res.error);
+        return;
+      }
+      setEditing(null);
+      router.refresh();
+      return;
+    }
     setLocalDeals((prev) => prev.filter((d) => d.id !== id));
     setEditing(null);
   }
@@ -113,13 +170,23 @@ export default function DealsView({ deals }: { deals: MockDeal[] }) {
               className="w-48 rounded-lg border border-border bg-white py-1.5 pl-8 pr-3 text-sm text-text-primary outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
             />
           </div>
-          <button
-            type="button"
-            onClick={() => setModalOpen(true)}
-            className="shrink-0 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accent-hover"
-          >
-            + Add Deal
-          </button>
+          {persistDeals ? (
+            <button
+              type="button"
+              onClick={() => setCreateDealOpen(true)}
+              className="shrink-0 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accent-hover"
+            >
+              Create deal
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setModalOpen(true)}
+              className="shrink-0 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accent-hover"
+            >
+              + Add Deal
+            </button>
+          )}
         </div>
       </div>
 
@@ -149,7 +216,20 @@ export default function DealsView({ deals }: { deals: MockDeal[] }) {
       {/* Content */}
       <div className="mt-6">
         {view === "table" && (
-          <DealsTable deals={filtered} onEdit={setEditing} />
+          <DealsTable
+            deals={filtered}
+            onEdit={setEditing}
+            onDelete={(id) => {
+              if (
+                !confirm(
+                  "Delete this deal? This cannot be undone from here."
+                )
+              ) {
+                return;
+              }
+              handleDelete(id);
+            }}
+          />
         )}
         {view === "pipeline" && (
           <KanbanBoard
@@ -186,11 +266,23 @@ export default function DealsView({ deals }: { deals: MockDeal[] }) {
         />
       )}
 
+      {createDealOpen && (
+        <CreateDealModal
+          leadOptions={leadPickerOptions}
+          onClose={() => setCreateDealOpen(false)}
+        />
+      )}
+
       {editing && (
         <EditDealModal
           deal={editing}
+          lockContactFields={persistDeals}
           onClose={() => setEditing(null)}
-          onSave={handleSave}
+          onSave={async (updated) => {
+            if (persistDeals) return handlePersistSave(updated);
+            handleLocalSave(updated);
+            return undefined;
+          }}
           onDelete={handleDelete}
         />
       )}
@@ -201,9 +293,11 @@ export default function DealsView({ deals }: { deals: MockDeal[] }) {
 function DealsTable({
   deals,
   onEdit,
+  onDelete,
 }: {
   deals: MockDeal[];
   onEdit: (deal: MockDeal) => void;
+  onDelete: (id: string) => void;
 }) {
   if (deals.length === 0) {
     return (
@@ -220,7 +314,7 @@ function DealsTable({
           <tr className="border-b border-border">
             <th className="px-4 py-3 font-semibold text-text-secondary">Deal</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">Company</th>
-            <th className="px-4 py-3 font-semibold text-text-secondary">Value</th>
+            <th className="px-4 py-3 font-semibold text-text-secondary">Revenue</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">Stage</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">Contact</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">Expected Close</th>
@@ -279,13 +373,22 @@ function DealsTable({
                   {formatDate(deal.expectedClose)}
                 </td>
                 <td className="px-4 py-3">
-                  <button
-                    type="button"
-                    onClick={() => onEdit(deal)}
-                    className="text-xs font-medium text-accent hover:underline"
-                  >
-                    Edit
-                  </button>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <button
+                      type="button"
+                      onClick={() => onEdit(deal)}
+                      className="text-xs font-medium text-accent hover:underline"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete(deal.id)}
+                      className="text-xs font-medium text-red-600 hover:underline dark:text-red-400"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             );
@@ -299,7 +402,15 @@ function DealsTable({
 const INPUT_CLASS =
   "w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm text-text-primary outline-none focus:border-accent focus:ring-2 focus:ring-accent/15";
 
-function DealFormFields({ deal }: { deal?: MockDeal }) {
+function DealFormFields({
+  deal,
+  lockContactFields,
+  includeWebsite,
+}: {
+  deal?: MockDeal;
+  lockContactFields?: boolean;
+  includeWebsite?: boolean;
+}) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div>
@@ -327,7 +438,7 @@ function DealFormFields({ deal }: { deal?: MockDeal }) {
       </div>
       <div>
         <label className="mb-1 block text-sm font-medium text-text-primary">
-          Value ($)
+          Revenue ($)
         </label>
         <input
           name="value"
@@ -364,6 +475,20 @@ function DealFormFields({ deal }: { deal?: MockDeal }) {
           className={INPUT_CLASS}
         />
       </div>
+      {includeWebsite && (
+        <div className="sm:col-span-2">
+          <label className="mb-1 block text-sm font-medium text-text-primary">
+            Website
+          </label>
+          <input
+            name="website"
+            type="url"
+            placeholder="https://…"
+            defaultValue=""
+            className={INPUT_CLASS}
+          />
+        </div>
+      )}
       <div>
         <label className="mb-1 block text-sm font-medium text-text-primary">
           Contact Name
@@ -371,8 +496,9 @@ function DealFormFields({ deal }: { deal?: MockDeal }) {
         <input
           name="contactName"
           type="text"
+          readOnly={lockContactFields}
           defaultValue={deal?.contactName}
-          className={INPUT_CLASS}
+          className={`${INPUT_CLASS} ${lockContactFields ? "cursor-not-allowed bg-surface/80 text-text-secondary" : ""}`}
         />
       </div>
       <div className="sm:col-span-2">
@@ -382,10 +508,16 @@ function DealFormFields({ deal }: { deal?: MockDeal }) {
         <input
           name="contactEmail"
           type="email"
+          readOnly={lockContactFields}
           defaultValue={deal?.contactEmail}
-          className={INPUT_CLASS}
+          className={`${INPUT_CLASS} ${lockContactFields ? "cursor-not-allowed bg-surface/80 text-text-secondary" : ""}`}
         />
       </div>
+      {lockContactFields && (
+        <p className="sm:col-span-2 text-xs text-text-secondary">
+          Contact details are tied to the lead. Edit them on the lead record.
+        </p>
+      )}
     </div>
   );
 }
@@ -424,6 +556,160 @@ function ModalShell({
         {children}
       </div>
     </div>
+  );
+}
+
+function draftDealFromLeadOption(o: LeadDealPickerOption): MockDeal {
+  return {
+    id: "",
+    title: "",
+    company: "",
+    value: 0,
+    stage: "prospect",
+    contactName: o.name?.trim() ?? "",
+    contactEmail: o.email?.trim() ?? "",
+    createdAt: "",
+    expectedClose: "",
+  };
+}
+
+function CreateDealModal({
+  leadOptions,
+  onClose,
+}: {
+  leadOptions: LeadDealPickerOption[];
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  const [leadId, setLeadId] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  const selected = leadOptions.find((o) => o.id === leadId);
+  const selectableCount = leadOptions.filter((o) => !o.hasDeal).length;
+
+  const canSubmit =
+    Boolean(leadId) &&
+    Boolean(selected) &&
+    !selected?.hasDeal &&
+    selectableCount > 0;
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    if (!leadId || !selected || selected.hasDeal) {
+      setError("Select a lead that does not already have a deal.");
+      return;
+    }
+    setPending(true);
+    const fd = new FormData(e.currentTarget);
+    const title = String(fd.get("title") ?? "").trim();
+    const company = String(fd.get("company") ?? "").trim();
+    const value = Number(fd.get("value")) || 0;
+    const stage = String(fd.get("stage") ?? "prospect").trim();
+    const expectedCloseRaw = String(fd.get("expectedClose") ?? "").trim();
+    const contactEmailRaw = String(fd.get("contactEmail") ?? "").trim();
+    const websiteRaw = String(fd.get("website") ?? "").trim();
+
+    const res = await createDealRecord({
+      leadId,
+      title,
+      company,
+      value,
+      stage,
+      expectedClose: expectedCloseRaw || null,
+      contactEmail: contactEmailRaw || selected.email?.trim() || null,
+      website: websiteRaw || null,
+    });
+    setPending(false);
+    if ("error" in res && res.error) {
+      setError(res.error);
+      return;
+    }
+    onClose();
+    router.refresh();
+  }
+
+  return (
+    <ModalShell id="create-deal-title" title="Create deal" onClose={onClose}>
+      <form onSubmit={onSubmit} className="mt-5 space-y-4">
+        {error && (
+          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
+            {error}
+          </p>
+        )}
+
+        {leadOptions.length === 0 ? (
+          <p className="text-sm text-text-secondary">
+            No leads yet. Add a lead first, then you can create a deal for them.
+          </p>
+        ) : (
+          <>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-text-primary">
+                Related lead
+              </label>
+              <select
+                name="lead_id"
+                required
+                value={leadId}
+                onChange={(e) => {
+                  setLeadId(e.target.value);
+                  setError(null);
+                }}
+                className={INPUT_CLASS}
+              >
+                <option value="">Select a lead…</option>
+                {leadOptions.map((o) => (
+                  <option key={o.id} value={o.id} disabled={o.hasDeal}>
+                    {o.label}
+                    {o.hasDeal ? " — already has deal" : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {selectableCount === 0 && (
+              <p className="text-sm text-text-secondary">
+                Every lead already has a deal. Add a new lead or remove an
+                existing deal first.
+              </p>
+            )}
+
+            {selected && !selected.hasDeal && (
+              <DealFormFields
+                key={selected.id}
+                deal={draftDealFromLeadOption(selected)}
+                lockContactFields
+                includeWebsite
+              />
+            )}
+          </>
+        )}
+
+        <div className="flex gap-2 pt-1">
+          <button
+            type="submit"
+            disabled={
+              pending ||
+              leadOptions.length === 0 ||
+              selectableCount === 0 ||
+              !canSubmit
+            }
+            className="rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-hover disabled:opacity-60"
+          >
+            {pending ? "Creating…" : "Create deal"}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-text-primary hover:bg-surface"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </ModalShell>
   );
 }
 
@@ -477,19 +763,26 @@ function NewDealModal({
 
 function EditDealModal({
   deal,
+  lockContactFields,
   onClose,
   onSave,
   onDelete,
 }: {
   deal: MockDeal;
+  lockContactFields?: boolean;
   onClose: () => void;
-  onSave: (updated: MockDeal) => void;
-  onDelete: (id: string) => void;
+  onSave: (
+    updated: MockDeal
+  ) => Promise<string | undefined> | string | undefined;
+  onDelete: (id: string) => void | Promise<void>;
 }) {
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    onSave({
+    const updated: MockDeal = {
       ...deal,
       title: (fd.get("title") as string) || deal.title,
       company: (fd.get("company") as string) || deal.company,
@@ -498,19 +791,33 @@ function EditDealModal({
       contactName: (fd.get("contactName") as string) || deal.contactName,
       contactEmail: (fd.get("contactEmail") as string) || deal.contactEmail,
       expectedClose: (fd.get("expectedClose") as string) || deal.expectedClose,
-    });
+    };
+    setSaveError(null);
+    setSaving(true);
+    try {
+      const err = await onSave(updated);
+      if (typeof err === "string" && err) setSaveError(err);
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
     <ModalShell id="edit-deal-title" title="Edit Deal" onClose={onClose}>
       <form onSubmit={onSubmit} className="mt-5 space-y-4">
-        <DealFormFields deal={deal} />
+        {saveError && (
+          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
+            {saveError}
+          </p>
+        )}
+        <DealFormFields deal={deal} lockContactFields={lockContactFields} />
         <div className="flex gap-2 pt-1">
           <button
             type="submit"
-            className="rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-hover"
+            disabled={saving}
+            className="rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-hover disabled:opacity-60"
           >
-            Save changes
+            {saving ? "Saving…" : "Save changes"}
           </button>
           <button
             type="button"
@@ -521,8 +828,17 @@ function EditDealModal({
           </button>
           <button
             type="button"
-            onClick={() => onDelete(deal.id)}
-            className="ml-auto rounded-xl px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50"
+            onClick={() => {
+              if (
+                !confirm(
+                  "Delete this deal? This cannot be undone from here."
+                )
+              ) {
+                return;
+              }
+              onDelete(deal.id);
+            }}
+            className="ml-auto rounded-xl px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
           >
             Delete
           </button>

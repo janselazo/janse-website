@@ -20,6 +20,10 @@ export interface MockProject {
   title: string;
   plan: PlanStage;
   teamId: string;
+  /** Supabase `client.id` — every project is tied to a client record. */
+  clientId: string;
+  /** Cached display label from the client row (name / company / email). */
+  clientName?: string | null;
   /** Display name for the squad (free text); takes precedence over teamId lookup */
   teamName?: string | null;
   /** Web App, Mobile App, etc. (optional for older seed rows) */
@@ -202,7 +206,7 @@ function colorForTeamTagLabel(tag: string) {
 
 const UNASSIGNED_TEAM: MockTeam = {
   id: "team-general",
-  name: "Unassigned",
+  name: "Member",
   color: "#94a3b8",
 };
 
@@ -264,8 +268,16 @@ export function getTeamById(id: string) {
 export function projectTeamDisplayName(p: MockProject): string {
   const n = p.teamName?.trim();
   if (n) return n;
-  if (!p.teamId || p.teamId === "team-general") return "Unassigned";
-  return getTeamById(p.teamId)?.name ?? "Unassigned";
+  if (!p.teamId || p.teamId === "team-general") return "Member";
+  return getTeamById(p.teamId)?.name ?? "Member";
+}
+
+/** Label for the linked CRM client (list + detail). */
+export function projectClientDisplayLabel(p: MockProject): string {
+  const n = p.clientName?.trim();
+  if (n) return n;
+  if (p.clientId?.trim()) return "Client (refresh name)";
+  return "—";
 }
 
 export function getMemberById(id: string) {
@@ -295,6 +307,8 @@ export interface MockDeal {
   contactEmail: string;
   createdAt: string;
   expectedClose: string;
+  /** Set when row comes from Supabase — edits sync to `deal` + linked `lead` */
+  leadId?: string;
 }
 
 export const DEAL_STAGE_LABELS: Record<DealStage, string> = {

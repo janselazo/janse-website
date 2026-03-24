@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { updateLead } from "@/app/(crm)/actions/crm";
 import { LEAD_PROJECT_TYPE_OPTIONS } from "@/lib/crm/mock-data";
+import CrmPopoverDateField from "@/components/crm/CrmPopoverDateField";
 import TabBar from "@/components/crm/TabBar";
 
 const inputClass =
@@ -76,6 +77,14 @@ export default function LeadEditForm({
     dealStages.some((s) => s.value === deal.stage)
       ? deal.stage
       : "prospect";
+
+  const [expectedClose, setExpectedClose] = useState(() =>
+    dateInputValue(deal?.expected_close)
+  );
+
+  useEffect(() => {
+    setExpectedClose(dateInputValue(deal?.expected_close));
+  }, [lead.id, deal?.expected_close]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -254,7 +263,7 @@ export default function LeadEditForm({
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-text-secondary">
-                Value ($)
+                Revenue ($)
               </label>
               <input
                 name="deal_value"
@@ -286,14 +295,23 @@ export default function LeadEditForm({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-text-secondary">
+              <label
+                htmlFor="deal-expected-close"
+                className="mb-1 block text-xs font-medium text-text-secondary"
+              >
                 Expected close
               </label>
               <input
+                type="hidden"
                 name="deal_expected_close"
-                type="date"
-                defaultValue={dateInputValue(deal?.expected_close)}
-                className={inputClass}
+                value={expectedClose}
+              />
+              <CrmPopoverDateField
+                id="deal-expected-close"
+                value={expectedClose}
+                onChange={setExpectedClose}
+                displayFormat="numeric"
+                triggerClassName="relative flex h-11 w-full items-center rounded-full border border-zinc-200 bg-white text-left shadow-sm outline-none transition-[border-color,box-shadow] focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/25 dark:border-zinc-600 dark:bg-zinc-900"
               />
             </div>
             <div>
