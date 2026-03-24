@@ -28,10 +28,10 @@ const prospectsNav = [
   { href: "/conversations", label: "Conversations", icon: MessageSquare },
   { href: "/calendar", label: "Appointments", icon: Calendar },
   { href: "/deals", label: "Deals", icon: Handshake },
-  { href: "/clients", label: "Clients", icon: Building2 },
 ];
 
 const workNav = [
+  { href: "/clients", label: "Clients", icon: Building2 },
   { href: "/projects", label: "Projects", icon: FolderKanban },
   { href: "/timeline", label: "Timeline", icon: GanttChart },
 ];
