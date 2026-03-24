@@ -27,9 +27,11 @@ import {
   DEAL_STAGE_LABELS,
   DEAL_STAGE_COLORS,
   LEAD_STAGE_LABELS,
+  LEAD_PIPELINE_STAGES,
+  LEAD_PIPELINE_COLUMN_COLORS,
+  parseLeadPipelineStage,
   type PlanStage,
   type DealStage,
-  type LeadStage,
   type TaskStatus,
   TASK_STATUS_LABELS,
   TASK_STATUS_COLORS,
@@ -79,26 +81,10 @@ function buildDealStageDistribution() {
 }
 
 function buildLeadFunnel() {
-  const stages: LeadStage[] = [
-    "new",
-    "contacted",
-    "qualified",
-    "not_qualified",
-    "won",
-    "lost",
-  ];
-  const colors: Record<LeadStage, string> = {
-    new: "#64748b",
-    contacted: "#3b82f6",
-    qualified: "#8b5cf6",
-    not_qualified: "#f59e0b",
-    won: "#10b981",
-    lost: "#f43f5e",
-  };
-  return stages.map((s) => ({
+  return LEAD_PIPELINE_STAGES.map((s) => ({
     stage: LEAD_STAGE_LABELS[s],
-    count: leads.filter((l) => l.stage === s).length,
-    color: colors[s],
+    count: leads.filter((l) => parseLeadPipelineStage(l.stage) === s).length,
+    color: LEAD_PIPELINE_COLUMN_COLORS[s],
   }));
 }
 

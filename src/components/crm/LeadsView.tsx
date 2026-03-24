@@ -29,7 +29,6 @@ import {
   LEAD_PROJECT_TYPE_OPTIONS,
   parseLeadPipelineStage,
   type DealStage,
-  type LeadStage,
 } from "@/lib/crm/mock-data";
 import KanbanBoard, { type KanbanColumn } from "@/components/crm/KanbanBoard";
 import CrmPopoverDateField from "@/components/crm/CrmPopoverDateField";
@@ -58,11 +57,6 @@ export interface Lead {
   has_deal?: boolean;
 }
 
-/** Kanban columns only — no "Not a fit" column (set that stage from the table). */
-const LEAD_PIPELINE_BOARD_STAGES = LEAD_PIPELINE_STAGES.filter(
-  (s) => s !== "not_qualified"
-);
-
 const DEAL_FORM_STAGE_ORDER: DealStage[] = [
   "prospect",
   "proposal",
@@ -77,8 +71,6 @@ const stageColors: Record<string, string> = {
   contacted: "#2563eb",
   qualified: "#7c3aed",
   not_qualified: "#f59e0b",
-  won: "#059669",
-  lost: "#be123c",
 };
 
 /** Shared chip shell: white / dark surface, no tinted fill. Text color applied per column. */
@@ -90,8 +82,6 @@ const stageTextClasses: Record<string, string> = {
   contacted: "text-blue-700 dark:text-blue-400",
   qualified: "text-violet-700 dark:text-violet-400",
   not_qualified: "text-amber-800 dark:text-amber-400",
-  won: "text-emerald-700 dark:text-emerald-400",
-  lost: "text-rose-700 dark:text-rose-400",
 };
 
 const sourceTextClasses: Record<string, string> = {
@@ -234,11 +224,9 @@ function PillSelect({
   );
 }
 
-function leadStageLabel(stage: string): string {
-  if (stage in LEAD_STAGE_LABELS) {
-    return LEAD_STAGE_LABELS[stage as LeadStage];
-  }
-  return stage;
+function leadStageLabel(rawStage: string | null | undefined): string {
+  const normalized = parseLeadPipelineStage(rawStage);
+  return LEAD_STAGE_LABELS[normalized];
 }
 
 function formatLeadPhone(phone: string | null | undefined): string {
@@ -318,7 +306,7 @@ export default function LeadsView({ leads }: { leads: Lead[] }) {
 
   const pipelineColumns: KanbanColumn<Lead>[] = useMemo(
     () =>
-      LEAD_PIPELINE_BOARD_STAGES.map((stage) => ({
+      LEAD_PIPELINE_STAGES.map((stage) => ({
         id: stage,
         label: LEAD_STAGE_LABELS[stage],
         color: LEAD_PIPELINE_COLUMN_COLORS[stage],
@@ -426,7 +414,7 @@ export default function LeadsView({ leads }: { leads: Lead[] }) {
           <p className="mt-1 text-sm text-text-secondary">
             {view === "pipeline"
               ? "Drag cards between stages to update pipeline status. Project types reflect the work prospects are interested in."
-              : "Track inbound inquiries and nurture them from first contact to won work."}
+              : "Track inbound inquiries and nurture them through qualification."}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -762,7 +750,7 @@ function LeadsTable({
         </thead>
         <tbody className="divide-y divide-border">
           {leads.map((lead) => {
-            const stage = (lead.stage ?? "new").trim().toLowerCase();
+            const stage = parseLeadPipelineStage(lead.stage);
             const isEditing = editingId === lead.id && draft !== null;
             const initials = (lead.name ?? "?")
               .split(/\s+/)
@@ -891,7 +879,7 @@ function LeadsTable({
                           backgroundColor: stageColors[stage] ?? "#64748b",
                         }}
                       />
-                      {leadStageLabel(stage)}
+                      {leadStageLabel(lead.stage)}
                     </span>
                   )}
                 </td>
