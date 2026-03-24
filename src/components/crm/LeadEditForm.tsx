@@ -14,7 +14,7 @@ const leadStages = [
   { value: "new", label: "New" },
   { value: "contacted", label: "Contacted" },
   { value: "qualified", label: "Qualified" },
-  { value: "not_qualified", label: "Not Qualified" },
+  { value: "not_qualified", label: "Not a fit" },
   { value: "won", label: "Won" },
   { value: "lost", label: "Lost" },
 ] as const;

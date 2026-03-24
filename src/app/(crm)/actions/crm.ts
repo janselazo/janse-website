@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { LEAD_PROJECT_TYPE_OPTIONS } from "@/lib/crm/mock-data";
+import {
+  LEAD_PIPELINE_STAGES,
+  LEAD_PROJECT_TYPE_OPTIONS,
+} from "@/lib/crm/mock-data";
+
+const ALLOWED_LEAD_STAGES = new Set<string>(LEAD_PIPELINE_STAGES);
 
 const PROJECT_TYPE_SET = new Set<string>(LEAD_PROJECT_TYPE_OPTIONS);
 
@@ -73,15 +78,7 @@ export async function updateLead(formData: FormData) {
   const notes = String(formData.get("notes") ?? "").trim();
   const project_type = parseProjectType(formData);
 
-  const allowedStages = [
-    "new",
-    "contacted",
-    "qualified",
-    "not_qualified",
-    "won",
-    "lost",
-  ];
-  if (!allowedStages.includes(stage)) {
+  if (!ALLOWED_LEAD_STAGES.has(stage)) {
     return { error: "Invalid stage" };
   }
 
@@ -164,6 +161,105 @@ export async function updateLead(formData: FormData) {
   revalidatePath("/leads");
   revalidatePath(`/leads/${id}`);
   revalidatePath("/deals");
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+/** Lead fields only (e.g. table inline edit). Does not create/update linked deal rows. */
+export async function updateLeadRow(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
+
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) return { error: "Missing lead id" };
+
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const company = String(formData.get("company") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const source = String(formData.get("source") ?? "").trim();
+  const stage = String(formData.get("stage") ?? "new").trim();
+  const notes = String(formData.get("notes") ?? "").trim();
+  const project_type = parseProjectType(formData);
+
+  if (!ALLOWED_LEAD_STAGES.has(stage)) {
+    return { error: "Invalid stage" };
+  }
+
+  const { error } = await supabase
+    .from("lead")
+    .update({
+      name: name || null,
+      email: email || null,
+      company: company || null,
+      phone: phone || null,
+      source: source || null,
+      stage,
+      notes: notes || null,
+      project_type,
+    })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/leads");
+  revalidatePath(`/leads/${id}`);
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+/** Updates only `lead.notes` (e.g. notes modal). Does not touch linked deal rows. */
+export async function updateLeadNotes(leadId: string, notes: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
+
+  const id = String(leadId ?? "").trim();
+  if (!id) return { error: "Missing lead id" };
+
+  const trimmed = notes.trim();
+  const notesValue = trimmed === "" ? null : trimmed;
+
+  const { error } = await supabase
+    .from("lead")
+    .update({ notes: notesValue })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/leads");
+  revalidatePath(`/leads/${id}`);
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+/** Updates only `lead.stage` (e.g. Kanban drag). Does not touch linked deal rows. */
+export async function updateLeadStage(leadId: string, stage: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
+
+  const id = String(leadId ?? "").trim();
+  if (!id) return { error: "Missing lead id" };
+
+  const s = String(stage ?? "").trim();
+  if (!ALLOWED_LEAD_STAGES.has(s)) {
+    return { error: "Invalid stage" };
+  }
+
+  const { error } = await supabase.from("lead").update({ stage: s }).eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/leads");
+  revalidatePath(`/leads/${id}`);
   revalidatePath("/dashboard");
   return { ok: true };
 }
@@ -497,6 +593,51 @@ export async function createAppointmentAction(input: {
   });
 
   if (error) return { error: error.message };
+  revalidatePath("/dashboard");
+  revalidatePath("/calendar");
+  return { ok: true };
+}
+
+/** Follow-up block on the calendar, linked to a lead (Quick Task from leads table). */
+export async function createLeadQuickTask(input: {
+  lead_id: string;
+  title: string;
+  starts_at: string;
+  ends_at: string;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
+
+  const leadId = input.lead_id.trim();
+  if (!leadId) return { error: "Missing lead id" };
+
+  const title = input.title.trim();
+  if (!title) return { error: "Add a task title" };
+
+  const starts = new Date(input.starts_at);
+  const ends = new Date(input.ends_at);
+
+  if (Number.isNaN(starts.getTime()) || Number.isNaN(ends.getTime())) {
+    return { error: "Valid start and end times are required" };
+  }
+  if (ends <= starts) return { error: "End must be after start" };
+
+  const { error } = await supabase.from("appointment").insert({
+    title,
+    description: null,
+    starts_at: starts.toISOString(),
+    ends_at: ends.toISOString(),
+    lead_id: leadId,
+    created_by: user.id,
+  });
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/leads");
+  revalidatePath(`/leads/${leadId}`);
   revalidatePath("/dashboard");
   revalidatePath("/calendar");
   return { ok: true };

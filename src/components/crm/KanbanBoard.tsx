@@ -22,6 +22,8 @@ interface KanbanBoardProps<T> {
   renderCard: (item: T) => ReactNode;
   onAddNew?: (columnId: string) => void;
   onMove?: (itemId: string, fromColumnId: string, toColumnId: string) => void;
+  /** Shown when a column has no cards (default: "No projects"). */
+  emptyColumnLabel?: string;
 }
 
 export default function KanbanBoard<T extends { id: string }>({
@@ -29,6 +31,7 @@ export default function KanbanBoard<T extends { id: string }>({
   renderCard,
   onAddNew,
   onMove,
+  emptyColumnLabel = "No projects",
 }: KanbanBoardProps<T>) {
   const dragRef = useRef<{ itemId: string; colId: string } | null>(null);
   const [dragItemId, setDragItemId] = useState<string | null>(null);
@@ -135,7 +138,7 @@ export default function KanbanBoard<T extends { id: string }>({
             <div className="flex min-h-[5rem] flex-1 flex-col gap-3 px-2.5 pb-3 pt-0.5">
               {col.items.length === 0 && !isOver ? (
                 <div className="rounded-xl py-10 text-center text-[12px] font-medium text-zinc-400/90 dark:text-zinc-500">
-                  No projects
+                  {emptyColumnLabel}
                 </div>
               ) : (
                 col.items.map((item) => (

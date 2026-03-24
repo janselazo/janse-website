@@ -13,7 +13,40 @@ export type LeadStage =
   | "new"
   | "contacted"
   | "qualified"
-  | "not_qualified";
+  | "not_qualified"
+  | "won"
+  | "lost";
+
+/** Kanban / pipeline column order (must match DB `lead.stage` values). */
+export const LEAD_PIPELINE_STAGES = [
+  "new",
+  "contacted",
+  "qualified",
+  "not_qualified",
+  "won",
+  "lost",
+] as const;
+
+export type LeadPipelineStage = (typeof LEAD_PIPELINE_STAGES)[number];
+
+export const LEAD_PIPELINE_COLUMN_COLORS: Record<LeadPipelineStage, string> = {
+  new: "#64748b",
+  contacted: "#3b82f6",
+  qualified: "#8b5cf6",
+  not_qualified: "#f59e0b",
+  won: "#10b981",
+  lost: "#f43f5e",
+};
+
+export function parseLeadPipelineStage(
+  value: string | null | undefined
+): LeadPipelineStage {
+  const s = (value ?? "new").trim().toLowerCase();
+  if ((LEAD_PIPELINE_STAGES as readonly string[]).includes(s)) {
+    return s as LeadPipelineStage;
+  }
+  return "new";
+}
 
 export interface MockProject {
   id: string;
@@ -167,7 +200,9 @@ export const LEAD_STAGE_LABELS: Record<LeadStage, string> = {
   new: "New",
   contacted: "Contacted",
   qualified: "Qualified",
-  not_qualified: "Not Qualified",
+  not_qualified: "Not a fit",
+  won: "Won",
+  lost: "Lost",
 };
 
 /** Lead "Project type" dropdown (stored as-display on `lead.project_type`) */
