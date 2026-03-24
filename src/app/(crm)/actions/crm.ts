@@ -277,7 +277,7 @@ function isClosedDealStage(stage: string) {
 }
 
 /**
- * First time a lead's deal reaches Closed Won / Closed Lost, copy lead → `client`
+ * First time a lead's deal reaches Won / Lost, copy lead → `client`
  * and set `lead.converted_client_id` (idempotent per lead).
  */
 async function ensureClientFromClosedDeal(
@@ -307,7 +307,7 @@ async function ensureClientFromClosedDeal(
     (dealCompanyHint && String(dealCompanyHint).trim()) ||
     null;
 
-  const outcome = dealStage === "closed_won" ? "Closed Won" : "Closed Lost";
+  const outcome = dealStage === "closed_won" ? "Won" : "Lost";
   const stamp = new Date().toISOString().slice(0, 10);
   const conversionLine = `[${stamp}] Deal ${outcome} — converted from lead.`;
   const notesBase = (lead.notes ?? "").trim();

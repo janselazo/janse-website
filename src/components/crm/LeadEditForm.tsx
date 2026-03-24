@@ -21,8 +21,8 @@ const dealStages = [
   { value: "prospect", label: "Open" },
   { value: "proposal", label: "Proposal" },
   { value: "negotiation", label: "Negotiation" },
-  { value: "closed_won", label: "Closed Won" },
-  { value: "closed_lost", label: "Closed Lost" },
+  { value: "closed_won", label: "Won" },
+  { value: "closed_lost", label: "Lost" },
 ] as const;
 
 const LEAD_TABS = [

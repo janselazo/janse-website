@@ -345,8 +345,8 @@ export const DEAL_STAGE_LABELS: Record<DealStage, string> = {
   prospect: "Open",
   proposal: "Proposal",
   negotiation: "Negotiation",
-  closed_won: "Closed Won",
-  closed_lost: "Closed Lost",
+  closed_won: "Won",
+  closed_lost: "Lost",
 };
 
 export const DEAL_STAGE_COLORS: Record<DealStage, string> = {
