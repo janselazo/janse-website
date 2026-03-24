@@ -1,9 +1,17 @@
-import type { MockTeamMember } from "@/lib/crm/mock-data";
+import {
+  type MockTeamMember,
+  parseTeamMemberPermission,
+} from "@/lib/crm/mock-data";
 
 export const CRM_TEAM_MEMBERS_STORAGE_KEY = "crm_team_members_v1";
 
 function normalizeMember(m: MockTeamMember): MockTeamMember {
-  return { ...m, tags: Array.isArray(m.tags) ? m.tags : [] };
+  return {
+    ...m,
+    tags: Array.isArray(m.tags) ? m.tags : [],
+    location: m.location ?? null,
+    permission: parseTeamMemberPermission(m.permission),
+  };
 }
 
 export function readStoredTeamMembers(): MockTeamMember[] {

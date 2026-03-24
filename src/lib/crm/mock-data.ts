@@ -56,6 +56,33 @@ export interface MockTask {
   assigneeId: string | null;
 }
 
+/** Workspace access level (separate from job title in `role`) */
+export type TeamMemberPermission = "owner" | "admin" | "member";
+
+export const TEAM_MEMBER_PERMISSION_LABELS: Record<
+  TeamMemberPermission,
+  string
+> = {
+  owner: "Owner",
+  admin: "Admin",
+  member: "Member",
+};
+
+export const TEAM_MEMBER_PERMISSION_ORDER: TeamMemberPermission[] = [
+  "owner",
+  "admin",
+  "member",
+];
+
+export function parseTeamMemberPermission(
+  value: unknown
+): TeamMemberPermission {
+  if (value === "owner" || value === "admin" || value === "member") {
+    return value;
+  }
+  return "member";
+}
+
 export interface MockTeamMember {
   id: string;
   name: string;
@@ -68,6 +95,10 @@ export interface MockTeamMember {
   utilization: number;
   activeProjects: number;
   avatarFallback: string;
+  /** City / region; optional — UI can fall back to a demo label when absent */
+  location?: string | null;
+  /** Owner / Admin / Member */
+  permission: TeamMemberPermission;
 }
 
 /** Quick-pick labels for the Team tag field (you can still type custom groups) */
