@@ -8,8 +8,6 @@ import {
   Check,
   ChevronDown,
   Handshake,
-  LayoutGrid,
-  List,
   Loader2,
   Pencil,
   Search,
@@ -252,30 +250,6 @@ function formatPipelineCardDate(iso?: string | null) {
 
 type LeadsViewMode = "table" | "pipeline";
 
-function ViewTab({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`-mb-px border-b-[3px] pb-3 text-sm font-semibold transition-colors ${
-        active
-          ? "border-[#5b21b6] text-[#5b21b6] dark:border-violet-400 dark:text-violet-400"
-          : "border-transparent text-zinc-500 hover:text-zinc-800 dark:text-zinc-500 dark:hover:text-zinc-300"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
 export default function LeadsView({ leads }: { leads: Lead[] }) {
   const router = useRouter();
   const [search, setSearch] = useState("");
@@ -298,6 +272,8 @@ export default function LeadsView({ leads }: { leads: Lead[] }) {
       l.project_type?.toLowerCase().includes(q)
     );
   });
+
+  const linkedDealsCount = filtered.filter((l) => l.has_deal).length;
 
   const pipelineColumns: KanbanColumn<Lead>[] = useMemo(
     () =>
@@ -411,15 +387,15 @@ export default function LeadsView({ leads }: { leads: Lead[] }) {
               : "Track inbound inquiries and nurture them through qualification."}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-[12rem] flex-1 sm:max-w-xs sm:flex-none">
+        <div className="flex items-center gap-2">
+          <div className="relative">
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-text-secondary/50" />
             <input
-              type="search"
+              type="text"
               placeholder="Search…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-border bg-white py-1.5 pl-8 pr-3 text-sm text-text-primary outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
+              className="w-48 rounded-lg border border-border bg-white py-1.5 pl-8 pr-3 text-sm text-text-primary outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
             />
           </div>
           <button
@@ -432,27 +408,27 @@ export default function LeadsView({ leads }: { leads: Lead[] }) {
         </div>
       </div>
 
-      <div className="mt-6 border-b border-zinc-200/90 dark:border-zinc-700">
-        <div className="flex flex-wrap items-end gap-6 gap-y-2">
-          <ViewTab active={view === "table"} onClick={() => setView("table")}>
-            <span className="inline-flex items-center gap-2">
-              <List className="h-3.5 w-3.5 opacity-80" aria-hidden />
-              Table
-            </span>
-          </ViewTab>
-          <ViewTab
-            active={view === "pipeline"}
-            onClick={() => setView("pipeline")}
-          >
-            <span className="inline-flex items-center gap-2">
-              <LayoutGrid className="h-3.5 w-3.5 opacity-80" aria-hidden />
-              Pipeline
-            </span>
-          </ViewTab>
-          <span className="pb-3 text-sm text-text-secondary">
-            {filtered.length} leads
-          </span>
+      {/* View toggles + stats (match Deals) */}
+      <div className="mt-4 flex items-center gap-4">
+        <div className="inline-flex rounded-lg border border-border bg-surface/50 p-0.5">
+          {(["table", "pipeline"] as LeadsViewMode[]).map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setView(v)}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+                view === v
+                  ? "bg-white text-text-primary shadow-sm"
+                  : "text-text-secondary hover:text-text-primary"
+              }`}
+            >
+              {v === "pipeline" ? "Pipeline" : "Table"}
+            </button>
+          ))}
         </div>
+        <span className="text-sm text-text-secondary">
+          {filtered.length} leads · {linkedDealsCount} with deals
+        </span>
       </div>
 
       <div className="mt-6">
