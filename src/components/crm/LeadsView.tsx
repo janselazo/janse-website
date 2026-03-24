@@ -1391,8 +1391,10 @@ function CreateDealForLeadModal({
               </label>
               <input
                 name="website"
-                type="url"
-                placeholder="https://…"
+                type="text"
+                inputMode="url"
+                autoComplete="url"
+                placeholder="example.com or https://…"
                 className={dealFormInputClass}
               />
             </div>
