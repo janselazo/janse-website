@@ -32,6 +32,7 @@ import {
   type LeadStage,
 } from "@/lib/crm/mock-data";
 import KanbanBoard, { type KanbanColumn } from "@/components/crm/KanbanBoard";
+import CrmPopoverDateField from "@/components/crm/CrmPopoverDateField";
 import {
   createDealRecord,
   createLead,
@@ -1233,6 +1234,7 @@ function CreateDealForLeadModal({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [expectedClose, setExpectedClose] = useState("");
 
   const leadLabel = lead.name?.trim() || lead.email?.trim() || "this lead";
 
@@ -1244,7 +1246,7 @@ function CreateDealForLeadModal({
     const company = String(fd.get("company") ?? "").trim();
     const value = Number(fd.get("value")) || 0;
     const stage = String(fd.get("stage") ?? "prospect").trim();
-    const expectedCloseRaw = String(fd.get("expectedClose") ?? "").trim();
+    const expectedCloseRaw = expectedClose.trim();
     const contactEmailRaw = String(fd.get("contactEmail") ?? "").trim();
     const websiteRaw = String(fd.get("website") ?? "").trim();
 
@@ -1368,10 +1370,20 @@ function CreateDealForLeadModal({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-text-primary">
+              <label
+                htmlFor="create-deal-expected-close"
+                className="mb-1 block text-sm font-medium text-text-primary"
+              >
                 Expected close
               </label>
-              <input name="expectedClose" type="date" className={dealFormInputClass} />
+              <input type="hidden" name="expectedClose" value={expectedClose} />
+              <CrmPopoverDateField
+                id="create-deal-expected-close"
+                value={expectedClose}
+                onChange={setExpectedClose}
+                displayFormat="numeric"
+                triggerClassName={`${dealFormInputClass} relative flex min-h-[2.625rem] items-center text-left dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100`}
+              />
             </div>
             <div className="sm:col-span-2">
               <label className="mb-1 block text-sm font-medium text-text-primary">

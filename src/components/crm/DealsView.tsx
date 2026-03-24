@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import KanbanBoard, { type KanbanColumn } from "@/components/crm/KanbanBoard";
+import CrmPopoverDateField from "@/components/crm/CrmPopoverDateField";
 import {
   createDealRecord,
   deleteDealRecord,
@@ -411,6 +412,14 @@ function DealFormFields({
   lockContactFields?: boolean;
   includeWebsite?: boolean;
 }) {
+  const expectedCloseId = useId();
+  const [expectedClose, setExpectedClose] = useState(
+    () => deal?.expectedClose ?? ""
+  );
+  useEffect(() => {
+    setExpectedClose(deal?.expectedClose ?? "");
+  }, [deal?.expectedClose, deal?.id]);
+
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div>
@@ -465,14 +474,19 @@ function DealFormFields({
         </select>
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium text-text-primary">
+        <label
+          htmlFor={expectedCloseId}
+          className="mb-1 block text-sm font-medium text-text-primary"
+        >
           Expected Close
         </label>
-        <input
-          name="expectedClose"
-          type="date"
-          defaultValue={deal?.expectedClose}
-          className={INPUT_CLASS}
+        <input type="hidden" name="expectedClose" value={expectedClose} />
+        <CrmPopoverDateField
+          id={expectedCloseId}
+          value={expectedClose}
+          onChange={setExpectedClose}
+          displayFormat="numeric"
+          triggerClassName={`${INPUT_CLASS} relative flex min-h-[2.625rem] items-center text-left`}
         />
       </div>
       {includeWebsite && (

@@ -7,7 +7,12 @@ import {
   type CSSProperties,
 } from "react";
 import { DayPicker } from "react-day-picker";
-import { Calendar as CalendarIcon, ChevronDown } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import "react-day-picker/style.css";
 
 function parseIso(iso: string): Date | undefined {
@@ -115,6 +120,7 @@ export default function CrmPopoverDateField({
               mode="single"
               selected={selected}
               showOutsideDays
+              weekStartsOn={0}
               onSelect={(d) => {
                 if (d) {
                   onChange(toIso(d));
@@ -122,15 +128,54 @@ export default function CrmPopoverDateField({
                 }
               }}
               defaultMonth={selected ?? new Date()}
-              captionLayout="dropdown"
+              captionLayout="label"
               startMonth={new Date(2000, 0)}
               endMonth={new Date(2040, 11)}
               className="crm-rdp text-text-primary dark:text-zinc-100"
+              components={{
+                Chevron: ({ className, size, orientation }) => {
+                  const dim = size ?? 20;
+                  if (orientation === "left") {
+                    return (
+                      <ChevronLeft
+                        className={className}
+                        size={dim}
+                        strokeWidth={2}
+                        aria-hidden
+                      />
+                    );
+                  }
+                  if (orientation === "right") {
+                    return (
+                      <ChevronRight
+                        className={className}
+                        size={dim}
+                        strokeWidth={2}
+                        aria-hidden
+                      />
+                    );
+                  }
+                  return (
+                    <ChevronDown
+                      className={className}
+                      size={dim}
+                      strokeWidth={2}
+                      aria-hidden
+                    />
+                  );
+                },
+              }}
+              classNames={{
+                button_previous:
+                  "inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800",
+                button_next:
+                  "inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800",
+              }}
               modifiersClassNames={{
                 today:
-                  "rounded-md font-medium shadow-[inset_0_0_0_2px_rgb(24,24,27)] dark:shadow-[inset_0_0_0_2px_rgb(228,228,231)]",
+                  "rounded-lg font-semibold text-blue-700 ring-1 ring-inset ring-blue-200/90 dark:text-blue-300 dark:ring-blue-800/70",
                 selected:
-                  "!bg-blue-600 !text-white hover:!bg-blue-600 focus:!bg-blue-600 rounded-md font-semibold !shadow-none",
+                  "!bg-blue-600 !text-white hover:!bg-blue-600 focus:!bg-blue-600 rounded-lg font-semibold !shadow-none !ring-0",
                 outside: "text-zinc-400 opacity-55 dark:text-zinc-500",
               }}
               style={
