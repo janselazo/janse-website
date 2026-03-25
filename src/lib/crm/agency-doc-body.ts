@@ -74,6 +74,7 @@ export function sanitizeDocHtml(html: string): string {
     ALLOWED_TAGS: [
       "p",
       "br",
+      "hr",
       "strong",
       "b",
       "em",

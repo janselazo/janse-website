@@ -9,7 +9,14 @@ import {
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
-import { Bold, Italic, Underline as UnderlineIcon } from "lucide-react";
+import {
+  Bold,
+  Italic,
+  List,
+  ListOrdered,
+  Minus,
+  Underline as UnderlineIcon,
+} from "lucide-react";
 import type { Editor } from "@tiptap/core";
 
 export type AgencyDocBlockEditorHandle = {
@@ -40,7 +47,7 @@ const AgencyDocBlockEditor = forwardRef<AgencyDocBlockEditorHandle, Props>(
       editorProps: {
         attributes: {
           class:
-            "agency-doc-tiptap min-h-[120px] px-3 py-2 text-base leading-relaxed text-text-primary focus:outline-none dark:text-zinc-100 [&_p]:mb-2 [&_p:last-child]:mb-0",
+            "agency-doc-tiptap min-h-[120px] px-3 py-2 text-base leading-relaxed text-text-primary focus:outline-none dark:text-zinc-100 [&_hr]:my-4 [&_hr]:border-border dark:[&_hr]:border-zinc-600 [&_li]:my-0.5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5",
         },
       },
     });
@@ -81,7 +88,7 @@ const AgencyDocBlockEditor = forwardRef<AgencyDocBlockEditorHandle, Props>(
         <div
           className="flex items-center gap-0.5 border-b border-border px-2 py-1.5 dark:border-zinc-700"
           role="toolbar"
-          aria-label="Text formatting"
+          aria-label="Text formatting and structure"
         >
           <ToolbarBtn
             editor={editor}
@@ -106,6 +113,34 @@ const AgencyDocBlockEditor = forwardRef<AgencyDocBlockEditorHandle, Props>(
             onPress={() => editor.chain().focus().toggleUnderline().run()}
           >
             <UnderlineIcon className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden />
+          </ToolbarBtn>
+          <span
+            className="mx-1 h-6 w-px shrink-0 self-center bg-border dark:bg-zinc-600"
+            aria-hidden
+          />
+          <ToolbarBtn
+            editor={editor}
+            label="Bullet list"
+            isActive={() => editor.isActive("bulletList")}
+            onPress={() => editor.chain().focus().toggleBulletList().run()}
+          >
+            <List className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden />
+          </ToolbarBtn>
+          <ToolbarBtn
+            editor={editor}
+            label="Numbered list"
+            isActive={() => editor.isActive("orderedList")}
+            onPress={() => editor.chain().focus().toggleOrderedList().run()}
+          >
+            <ListOrdered className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden />
+          </ToolbarBtn>
+          <ToolbarBtn
+            editor={editor}
+            label="Horizontal line"
+            isActive={() => false}
+            onPress={() => editor.chain().focus().setHorizontalRule().run()}
+          >
+            <Minus className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden />
           </ToolbarBtn>
         </div>
         <EditorContent editor={editor} />
