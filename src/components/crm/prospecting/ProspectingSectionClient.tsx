@@ -17,6 +17,7 @@ import {
   type ProspectingSectionSlug,
 } from "@/lib/crm/prospecting-nav";
 import ColdOutreachView from "@/components/crm/prospecting/ColdOutreachView";
+import ProspectsIntelligenceView from "@/components/crm/prospecting/ProspectsIntelligenceView";
 import SocialMediaProspectingPlaceholder from "@/components/crm/prospecting/SocialMediaProspectingPlaceholder";
 import ComingSoonModule from "@/components/crm/prospecting/ComingSoonModule";
 import ProspectingTabbedShell, {
@@ -33,6 +34,10 @@ export default function ProspectingSectionClient({
 
   if (slug === "playbook") {
     return <ColdOutreachView />;
+  }
+
+  if (slug === "prospects") {
+    return <ProspectsIntelligenceView />;
   }
 
   if (slug === "social-media") {
@@ -75,7 +80,7 @@ export default function ProspectingSectionClient({
             label: "Email Marketing",
             icon: Mails,
             body: (
-              <PlaceholderPanel text="Newsletters, nurture sequences, and one-to-one outreach — templates, sends, and replies will connect to Prospects and Deals in a later phase." />
+              <PlaceholderPanel text="Newsletters, nurture sequences, and one-to-one outreach — templates, sends, and replies will connect to Leads and Deals in a later phase." />
             ),
           },
           {

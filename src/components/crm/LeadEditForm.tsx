@@ -204,7 +204,7 @@ export default function LeadEditForm({
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-text-secondary">
-                Prospect stage
+                Lead stage
               </label>
               <select
                 name="stage"

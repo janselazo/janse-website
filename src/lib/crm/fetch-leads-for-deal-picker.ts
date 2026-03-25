@@ -8,7 +8,7 @@ export type LeadDealPickerOption = {
 };
 
 /**
- * Prospects for the Create deal flow (a prospect may have multiple deals).
+ * Leads for the Create deal flow (a lead may have multiple deals).
  */
 export async function fetchLeadsForDealPicker(): Promise<LeadDealPickerOption[]> {
   const supabase = await createClient();

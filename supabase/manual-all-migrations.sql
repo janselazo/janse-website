@@ -699,3 +699,25 @@ create policy "time_entry_delete_own"
   using (auth.uid() = user_id);
 
 grant select, insert, update, delete on public.time_entry to authenticated;
+
+-- ----- 20260403120000_prospect_intel_report.sql -----
+create table if not exists public.prospect_intel_report (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  payload jsonb not null default '{}'::jsonb,
+  lead_id uuid references public.lead (id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists prospect_intel_report_user_created_idx
+  on public.prospect_intel_report (user_id, created_at desc);
+
+alter table public.prospect_intel_report enable row level security;
+
+drop policy if exists "agency_all_prospect_intel_report" on public.prospect_intel_report;
+create policy "agency_all_prospect_intel_report"
+  on public.prospect_intel_report for all
+  using (public.is_agency_staff())
+  with check (public.is_agency_staff());
+
+grant select, insert, update, delete on public.prospect_intel_report to authenticated;

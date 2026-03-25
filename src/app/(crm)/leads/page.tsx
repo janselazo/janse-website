@@ -6,7 +6,7 @@ export default async function LeadsPage() {
   if (!isSupabaseConfigured()) {
     return (
       <div className="p-8">
-        <h1 className="heading-display text-2xl font-bold">Prospects</h1>
+        <h1 className="heading-display text-2xl font-bold">Leads</h1>
         <p className="mt-2 text-text-secondary">Configure Supabase to load CRM.</p>
       </div>
     );
@@ -26,7 +26,7 @@ export default async function LeadsPage() {
       {error ? (
         <div>
           <h1 className="heading-display text-2xl font-bold text-text-primary">
-            Prospects
+            Leads
           </h1>
           <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
             {error.message}. Apply{" "}

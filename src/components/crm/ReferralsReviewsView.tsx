@@ -25,7 +25,7 @@ export default function ReferralsReviewsView() {
         </h1>
         <p className="mt-1 max-w-2xl text-sm text-text-secondary dark:text-zinc-400">
           Grow through warm introductions and public proof. Use the Referrals tab
-          to steer clients and prospects toward introductions; use Reviews to
+          to steer clients and leads toward introductions; use Reviews to
           send happy partners to Google Business Profile, Clutch, and Yelp.
         </p>
       </div>

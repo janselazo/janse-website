@@ -28,7 +28,7 @@ import { projects as seedProjects } from "@/lib/crm/mock-data";
 import { getMergedProjectsList } from "@/lib/crm/projects-storage";
 
 const opportunitiesNav = [
-  { href: "/leads", label: "Prospects", icon: UsersRound },
+  { href: "/leads", label: "Leads", icon: UsersRound },
   { href: "/deals", label: "Deals", icon: Handshake },
   { href: "/conversations", label: "Conversations", icon: MessageSquare },
   { href: "/calendar", label: "Appointments", icon: Calendar },
@@ -107,16 +107,6 @@ export default function AppSidebar() {
           </nav>
         </div>
 
-        {/* Opportunities */}
-        <NavGroup label="Opportunities">
-          {opportunitiesNav.map(({ href, label, icon: Icon }) => (
-            <NavLink key={href} href={href} active={isActive(pathname, href)}>
-              <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
-              {label}
-            </NavLink>
-          ))}
-        </NavGroup>
-
         {/* Prospecting */}
         <NavGroup label="Prospecting">
           {PROSPECTING_SECTIONS.map(({ href, label, icon: Icon, soon }) => (
@@ -128,6 +118,16 @@ export default function AppSidebar() {
               <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
               <span className="min-w-0 flex-1 truncate">{label}</span>
               {soon ? <SoonBadge className="ml-auto" /> : null}
+            </NavLink>
+          ))}
+        </NavGroup>
+
+        {/* Opportunities */}
+        <NavGroup label="Opportunities">
+          {opportunitiesNav.map(({ href, label, icon: Icon }) => (
+            <NavLink key={href} href={href} active={isActive(pathname, href)}>
+              <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+              {label}
             </NavLink>
           ))}
         </NavGroup>

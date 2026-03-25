@@ -9,10 +9,12 @@ import {
   Handshake,
   Search,
   Gift,
+  UserSearch,
 } from "lucide-react";
 
 export type ProspectingSectionSlug =
   | "playbook"
+  | "prospects"
   | "creatives"
   | "landing-pages"
   | "social-media"
@@ -44,6 +46,14 @@ export const PROSPECTING_SECTIONS: ProspectingSection[] = [
       "Daily playbook, agenda, and tasks to book more conversations and appointments.",
   },
   {
+    slug: "prospects",
+    label: "Prospects",
+    href: "/prospecting/prospects",
+    icon: UserSearch,
+    description:
+      "Discover businesses via Google Places, analyze websites, and get software, AI automation, and growth ideas—then add targets as Leads.",
+  },
+  {
     slug: "creatives",
     label: "Creatives",
     href: "/prospecting/creatives",
@@ -68,7 +78,7 @@ export const PROSPECTING_SECTIONS: ProspectingSection[] = [
     soon: true,
     comingSoonFeatures: [
       "Drag-and-drop builder with agency-grade templates",
-      "Lead capture fields mapped to Prospects and Appointments",
+      "Lead capture fields mapped to Leads and Appointments",
       "Custom domains and basic conversion analytics",
       "Reuse blocks across Campaigns and Playbook",
     ],
@@ -118,7 +128,7 @@ export const PROSPECTING_SECTIONS: ProspectingSection[] = [
     href: "/referrals",
     icon: Gift,
     description:
-      "Public review links, referral touchpoints, and social proof for prospects and partners.",
+      "Public review links, referral touchpoints, and social proof for leads and partners.",
   },
   {
     slug: "seo",

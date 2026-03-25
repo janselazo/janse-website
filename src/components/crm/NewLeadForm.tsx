@@ -27,7 +27,7 @@ export default function NewLeadForm() {
       return;
     }
     e.currentTarget.reset();
-    setMessage("Prospect created.");
+    setMessage("Lead created.");
     router.refresh();
   }
 
@@ -37,7 +37,7 @@ export default function NewLeadForm() {
       className="rounded-2xl border border-border bg-white p-6 shadow-sm"
     >
       <h2 className="text-sm font-semibold uppercase tracking-wider text-text-secondary">
-        New prospect
+        New lead
       </h2>
       {error ? (
         <p className="mt-3 text-sm text-red-700" role="alert">
@@ -115,7 +115,7 @@ export default function NewLeadForm() {
         disabled={pending}
         className="mt-4 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-hover disabled:opacity-60"
       >
-        {pending ? "Saving…" : "Add prospect"}
+        {pending ? "Saving…" : "Add lead"}
       </button>
     </form>
   );

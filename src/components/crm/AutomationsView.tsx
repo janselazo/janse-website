@@ -17,7 +17,7 @@ const FLOWS: AutomationFlow[] = [
     id: "new-lead-sms",
     title: "New lead SMS alert",
     category: "Leads",
-    trigger: "When a new prospect is created",
+    trigger: "When a new lead is created",
     action: "Send SMS to specified phone numbers",
     available: true,
   },
@@ -34,7 +34,7 @@ const FLOWS: AutomationFlow[] = [
     title: "Appointment reminder",
     category: "Appointments",
     trigger: "When an appointment is booked",
-    action: "Send reminder SMS to the prospect",
+    action: "Send reminder SMS to the lead",
     available: false,
   },
 ];
