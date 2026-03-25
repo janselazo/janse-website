@@ -294,10 +294,6 @@ export default function DashboardView({
         <KpiCard label="Expenses" value={fmt(expensesWeek)} />
         <KpiCard label="Profit" value={fmt(profit)} accent />
       </div>
-      <p className="text-xs text-text-secondary/80 dark:text-zinc-500">
-        KPIs and charts use the selected date range (clients and projects: created
-        in range; revenue and expenses: transaction dates in range).
-      </p>
 
       {/* Daily Playbook summary */}
       <div className={`${dashCard} p-5`}>
@@ -349,23 +345,21 @@ export default function DashboardView({
             {rangeLabel}
           </span>
         </div>
-        <div className="mt-5 flex items-center justify-between gap-2">
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-y-4 sm:justify-between">
           {funnel.map((stage, i) => (
             <div key={stage.label} className="flex items-center gap-2">
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center text-center">
                 <div
-                  className={`flex h-14 w-14 items-center justify-center rounded-2xl ${stage.bg}`}
+                  className={`inline-flex min-h-[3.25rem] min-w-[5.25rem] items-center justify-center rounded-2xl px-4 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ${stage.bg}`}
                 >
                   <span
-                    className="text-lg font-bold"
+                    className="text-[15px] font-bold tabular-nums leading-none tracking-tight sm:text-base"
                     style={{ color: stage.color }}
                   >
-                    {stage.label === "Revenue"
-                      ? fmt(stage.value).replace("$", "$")
-                      : stage.count}
+                    {stage.label === "Revenue" ? fmt(stage.value) : stage.count}
                   </span>
                 </div>
-                <p className="mt-1.5 text-xs font-medium text-text-primary dark:text-zinc-200">
+                <p className="mt-2 text-xs font-semibold leading-snug text-text-primary dark:text-zinc-200">
                   {stage.label}
                 </p>
                 {i < funnel.length - 1 && stage.count > 0 && (
@@ -609,7 +603,7 @@ function KpiCard({ label, value, accent }: { label: string; value: string; accen
         {label}
       </p>
       <p
-        className={`mt-2 text-2xl font-bold tracking-tight ${
+        className={`mt-3 text-2xl font-bold tabular-nums tracking-tight ${
           accent ? "text-accent dark:text-blue-400" : "text-text-primary dark:text-zinc-50"
         }`}
       >

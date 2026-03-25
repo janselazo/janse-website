@@ -18,6 +18,7 @@ import {
   LogOut,
   ChevronDown,
   MessageSquare,
+  FileText,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { projects as seedProjects } from "@/lib/crm/mock-data";
@@ -32,6 +33,7 @@ const opportunitiesNav = [
 
 const workNav = [
   { href: "/clients", label: "Clients", icon: Building2 },
+  { href: "/proposals", label: "Proposals", icon: FileText },
   { href: "/projects", label: "Projects", icon: FolderKanban },
 ];
 
