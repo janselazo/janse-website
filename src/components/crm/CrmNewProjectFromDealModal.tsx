@@ -7,10 +7,14 @@ import NewProjectModal from "@/components/crm/NewProjectModal";
 import { fetchDealPrefillForNewProject } from "@/lib/crm/fetch-deal-prefill-for-new-project";
 import type { NewProjectDealPrefill } from "@/lib/crm/new-project-deal-prefill";
 import type { MockProject } from "@/lib/crm/mock-data";
+import { createCrmProject } from "@/app/(crm)/actions/projects";
+import { crmPayloadFromMock } from "@/lib/crm/map-project-row";
 import {
   readStoredProjects,
   writeStoredProjects,
+  CRM_SUPABASE_PROJECTS_CHANGED_EVENT,
 } from "@/lib/crm/projects-storage";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export default function CrmNewProjectFromDealModal({
   dealId,
@@ -43,7 +47,18 @@ export default function CrmNewProjectFromDealModal({
     };
   }, [dealId]);
 
-  function handleAdd(project: MockProject) {
+  async function handleAdd(project: MockProject) {
+    if (isSupabaseConfigured()) {
+      const res = await createCrmProject(crmPayloadFromMock(project));
+      if ("error" in res) {
+        alert(res.error);
+        return;
+      }
+      window.dispatchEvent(new Event(CRM_SUPABASE_PROJECTS_CHANGED_EVENT));
+      onClose();
+      router.refresh();
+      return;
+    }
     const prev = readStoredProjects();
     writeStoredProjects([...prev, project]);
     window.dispatchEvent(new Event("crm-projects-changed"));

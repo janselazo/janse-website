@@ -22,7 +22,7 @@ export async function fetchDealsForDealsView(): Promise<MockDeal[]> {
   const { data: rows, error } = await supabase
     .from("deal")
     .select(
-      "id, lead_id, title, company, value, stage, expected_close, contact_email, created_at"
+      "id, lead_id, title, company, value, stage, expected_close, contact_email, website, created_at"
     )
     .order("updated_at", { ascending: false });
 
@@ -42,6 +42,7 @@ export async function fetchDealsForDealsView(): Promise<MockDeal[]> {
       row.value != null && row.value !== ""
         ? Number(row.value)
         : 0;
+    const site = row.website != null ? String(row.website).trim() : "";
     return {
       id: row.id,
       leadId: row.lead_id,
@@ -58,6 +59,7 @@ export async function fetchDealsForDealsView(): Promise<MockDeal[]> {
       expectedClose: row.expected_close
         ? String(row.expected_close).slice(0, 10)
         : "",
+      website: site || null,
     };
   });
 }

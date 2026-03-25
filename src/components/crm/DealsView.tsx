@@ -153,6 +153,7 @@ export default function DealsView({
       stage: updated.stage,
       expectedClose: updated.expectedClose.trim() || null,
       contactEmail: updated.contactEmail.trim() || null,
+      website: updated.website?.trim() || null,
     });
     if (res.error) return res.error;
     setEditing(null);
@@ -411,6 +412,7 @@ export default function DealsView({
         <EditDealModal
           deal={editing}
           lockContactFields={persistDeals}
+          includeWebsite={persistDeals}
           onClose={() => setEditing(null)}
           onSave={async (updated) => {
             if (persistDeals) return handlePersistSave(updated);
@@ -960,7 +962,7 @@ function DealFormFields({
             inputMode="url"
             autoComplete="url"
             placeholder="example.com or https://…"
-            defaultValue=""
+            defaultValue={deal?.website ?? ""}
             className={INPUT_CLASS}
           />
         </div>
@@ -1222,12 +1224,14 @@ function NewDealModal({
 function EditDealModal({
   deal,
   lockContactFields,
+  includeWebsite,
   onClose,
   onSave,
   onDelete,
 }: {
   deal: MockDeal;
   lockContactFields?: boolean;
+  includeWebsite?: boolean;
   onClose: () => void;
   onSave: (
     updated: MockDeal
@@ -1240,6 +1244,7 @@ function EditDealModal({
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    const websiteRaw = String(fd.get("website") ?? "").trim();
     const updated: MockDeal = {
       ...deal,
       title: (fd.get("title") as string) || deal.title,
@@ -1249,6 +1254,7 @@ function EditDealModal({
       contactName: (fd.get("contactName") as string) || deal.contactName,
       contactEmail: (fd.get("contactEmail") as string) || deal.contactEmail,
       expectedClose: (fd.get("expectedClose") as string) || deal.expectedClose,
+      website: includeWebsite ? websiteRaw || null : deal.website ?? null,
     };
     setSaveError(null);
     setSaving(true);
@@ -1268,7 +1274,11 @@ function EditDealModal({
             {saveError}
           </p>
         )}
-        <DealFormFields deal={deal} lockContactFields={lockContactFields} />
+        <DealFormFields
+          deal={deal}
+          lockContactFields={lockContactFields}
+          includeWebsite={includeWebsite}
+        />
         <div className="flex gap-2 pt-1">
           <button
             type="submit"

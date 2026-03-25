@@ -12,6 +12,14 @@ import {
   type PlanStage,
   type MockProject,
 } from "@/lib/crm/mock-data";
+import {
+  listCrmProjectsForAgency,
+  createCrmProject,
+  updateCrmProject,
+  deleteCrmProject,
+  updateCrmProjectPlanStage,
+} from "@/app/(crm)/actions/projects";
+import { crmPayloadFromMock } from "@/lib/crm/map-project-row";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import {
   ArrowDownUp,
@@ -34,7 +42,11 @@ import KanbanBoard, { type KanbanColumn } from "@/components/crm/KanbanBoard";
 import NewProjectModal from "@/components/crm/NewProjectModal";
 import { fetchDealPrefillForNewProject } from "@/lib/crm/fetch-deal-prefill-for-new-project";
 import type { NewProjectDealPrefill } from "@/lib/crm/new-project-deal-prefill";
-import { readStoredProjects, writeStoredProjects } from "@/lib/crm/projects-storage";
+import {
+  readStoredProjects,
+  writeStoredProjects,
+  CRM_SUPABASE_PROJECTS_CHANGED_EVENT,
+} from "@/lib/crm/projects-storage";
 
 type ViewMode = "kanban" | "table";
 type SortKey = "title-asc" | "title-desc" | "end-asc" | "end-desc";
@@ -142,6 +154,7 @@ export default function ProjectsPage() {
   );
   const [editProject, setEditProject] = useState<MockProject | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
 
   const spNew = searchParams.get("new");
   const spDealId = searchParams.get("dealId");
@@ -170,11 +183,34 @@ export default function ProjectsPage() {
   }, [spNew, spDealId, router]);
 
   useEffect(() => {
+    if (isSupabaseConfigured()) {
+      let cancelled = false;
+      const loadRemote = () => {
+        void listCrmProjectsForAgency().then(({ projects, error }) => {
+          if (cancelled) return;
+          if (error) {
+            setListError(error);
+            setProjectList([]);
+            return;
+          }
+          setListError(null);
+          setProjectList(projects);
+        });
+      };
+      loadRemote();
+      window.addEventListener(CRM_SUPABASE_PROJECTS_CHANGED_EVENT, loadRemote);
+      return () => {
+        cancelled = true;
+        window.removeEventListener(
+          CRM_SUPABASE_PROJECTS_CHANGED_EVENT,
+          loadRemote
+        );
+      };
+    }
+
     const stored = readStoredProjects();
     if (stored.length > 0) setProjectList(stored);
-  }, []);
 
-  useEffect(() => {
     const sync = () => {
       const next = readStoredProjects();
       if (next.length > 0) setProjectList(next);
@@ -250,10 +286,23 @@ export default function ProjectsPage() {
     items: sortedForBoard.filter((p) => p.plan === plan),
   }));
 
-  function handleMove(itemId: string, _from: string, to: string) {
+  async function handleMove(itemId: string, _from: string, to: string) {
+    const stage = to as PlanStage;
+    if (isSupabaseConfigured()) {
+      const res = await updateCrmProjectPlanStage(itemId, stage);
+      if ("error" in res) {
+        alert(res.error);
+        return;
+      }
+      setProjectList((prev) =>
+        prev.map((p) => (p.id === itemId ? { ...p, plan: stage } : p))
+      );
+      window.dispatchEvent(new Event(CRM_SUPABASE_PROJECTS_CHANGED_EVENT));
+      return;
+    }
     setProjectList((prev) => {
       const next = prev.map((p) =>
-        p.id === itemId ? { ...p, plan: to as PlanStage } : p
+        p.id === itemId ? { ...p, plan: stage } : p
       );
       writeStoredProjects(next);
       return next;
@@ -272,10 +321,21 @@ export default function ProjectsPage() {
     setModalOpen(true);
   }
 
-  function handleDeleteProject(project: MockProject) {
+  async function handleDeleteProject(project: MockProject) {
     const label = project.title.trim() || "this project";
     if (!confirm(`Delete “${label}”? This cannot be undone.`)) return;
     setDeletingId(project.id);
+    if (isSupabaseConfigured()) {
+      const res = await deleteCrmProject(project.id);
+      setDeletingId(null);
+      if ("error" in res) {
+        alert(res.error);
+        return;
+      }
+      setProjectList((prev) => prev.filter((p) => p.id !== project.id));
+      window.dispatchEvent(new Event(CRM_SUPABASE_PROJECTS_CHANGED_EVENT));
+      return;
+    }
     setProjectList((prev) => {
       const next = prev.filter((p) => p.id !== project.id);
       writeStoredProjects(next);
@@ -305,6 +365,14 @@ export default function ProjectsPage() {
               ? "Drag cards between columns to update plan stage. Each project is linked to a client."
               : "Sort and filter the full project list. Each project is linked to a client."}
           </p>
+          {listError ? (
+            <p
+              className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/35 dark:text-amber-100"
+              role="status"
+            >
+              {listError}
+            </p>
+          ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -460,24 +528,57 @@ export default function ProjectsPage() {
             setDealPrefill(null);
             setEditProject(null);
           }}
-          onAdd={(project) => {
-            setProjectList((prev) => {
-              const next = [...prev, project];
-              writeStoredProjects(next);
-              return next;
-            });
+          onAdd={async (project) => {
+            if (isSupabaseConfigured()) {
+              const res = await createCrmProject(crmPayloadFromMock(project));
+              if ("error" in res) {
+                alert(res.error);
+                return;
+              }
+              const { projects, error } = await listCrmProjectsForAgency();
+              if (error) {
+                alert(error);
+                return;
+              }
+              setProjectList(projects);
+              window.dispatchEvent(new Event(CRM_SUPABASE_PROJECTS_CHANGED_EVENT));
+            } else {
+              setProjectList((prev) => {
+                const next = [...prev, project];
+                writeStoredProjects(next);
+                return next;
+              });
+            }
             setModalOpen(false);
             setDealPrefill(null);
             setEditProject(null);
           }}
-          onUpdate={(project) => {
-            setProjectList((prev) => {
-              const next = prev.map((p) =>
-                p.id === project.id ? project : p
+          onUpdate={async (project) => {
+            if (isSupabaseConfigured()) {
+              const res = await updateCrmProject(
+                project.id,
+                crmPayloadFromMock(project)
               );
-              writeStoredProjects(next);
-              return next;
-            });
+              if ("error" in res) {
+                alert(res.error);
+                return;
+              }
+              const { projects, error } = await listCrmProjectsForAgency();
+              if (error) {
+                alert(error);
+                return;
+              }
+              setProjectList(projects);
+              window.dispatchEvent(new Event(CRM_SUPABASE_PROJECTS_CHANGED_EVENT));
+            } else {
+              setProjectList((prev) => {
+                const next = prev.map((p) =>
+                  p.id === project.id ? project : p
+                );
+                writeStoredProjects(next);
+                return next;
+              });
+            }
             setModalOpen(false);
             setDealPrefill(null);
             setEditProject(null);

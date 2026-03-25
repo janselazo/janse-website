@@ -13,7 +13,16 @@ import {
   type TaskStatus,
   type MockProject,
 } from "@/lib/crm/mock-data";
-import { getMergedProjectById } from "@/lib/crm/projects-storage";
+import {
+  getMergedProjectById,
+  CRM_SUPABASE_PROJECTS_CHANGED_EVENT,
+} from "@/lib/crm/projects-storage";
+import {
+  projectRowToMock,
+  type ProjectRow,
+} from "@/lib/crm/map-project-row";
+import { createClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { useProjectWorkspace } from "@/lib/crm/use-project-workspace";
 import { formatISODate } from "@/lib/crm/project-date-utils";
 import KanbanBoard, { type KanbanColumn } from "@/components/crm/KanbanBoard";
@@ -108,13 +117,88 @@ export default function ProjectDetailPage({ params }: Props) {
   } = useProjectWorkspace(id);
 
   useEffect(() => {
-    const load = () => setProject(getMergedProjectById(id) ?? null);
-    load();
-    window.addEventListener("crm-projects-changed", load);
-    window.addEventListener("storage", load);
+    function clientLabel(c: {
+      name?: string | null;
+      company?: string | null;
+      email?: string | null;
+    }) {
+      const parts = [c.name?.trim(), c.company?.trim()].filter(Boolean) as string[];
+      if (parts.length) return parts.join(" · ");
+      return c.email?.trim() || "Client";
+    }
+
+    let cancelled = false;
+
+    async function load(opts?: { showSpinner?: boolean }) {
+      const showSpinner = opts?.showSpinner !== false;
+      if (showSpinner) setProject(undefined);
+
+      if (!isSupabaseConfigured()) {
+        setProject(getMergedProjectById(id) ?? null);
+        return;
+      }
+      const isUuid =
+        /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(
+          id
+        );
+      if (!isUuid) {
+        setProject(getMergedProjectById(id) ?? null);
+        return;
+      }
+
+      const sb = createClient();
+      const { data: row, error } = await sb
+        .from("project")
+        .select(
+          "id, client_id, title, description, status, target_date, website, budget, plan_stage, project_type, metadata"
+        )
+        .eq("id", id)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      if (error || !row) {
+        setProject(getMergedProjectById(id) ?? null);
+        return;
+      }
+
+      const { data: client } = await sb
+        .from("client")
+        .select("name, email, company")
+        .eq("id", row.client_id)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      setProject(
+        projectRowToMock(row as ProjectRow, clientLabel(client ?? {}))
+      );
+    }
+
+    void load({ showSpinner: true });
+
+    const onLocalChange = () => {
+      if (!isSupabaseConfigured()) {
+        setProject(getMergedProjectById(id) ?? null);
+      }
+    };
+
+    const onRemoteProjects = () => {
+      void load({ showSpinner: false });
+    };
+
+    window.addEventListener("crm-projects-changed", onLocalChange);
+    window.addEventListener("storage", onLocalChange);
+    window.addEventListener(CRM_SUPABASE_PROJECTS_CHANGED_EVENT, onRemoteProjects);
+
     return () => {
-      window.removeEventListener("crm-projects-changed", load);
-      window.removeEventListener("storage", load);
+      cancelled = true;
+      window.removeEventListener("crm-projects-changed", onLocalChange);
+      window.removeEventListener("storage", onLocalChange);
+      window.removeEventListener(
+        CRM_SUPABASE_PROJECTS_CHANGED_EVENT,
+        onRemoteProjects
+      );
     };
   }, [id]);
 

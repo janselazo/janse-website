@@ -3,6 +3,9 @@ import { projects as seedProjects } from "@/lib/crm/mock-data";
 
 export const CRM_PROJECTS_STORAGE_KEY = "crm_projects_v1";
 
+/** After Supabase project CRUD from other surfaces, `/projects` listens and refetches. */
+export const CRM_SUPABASE_PROJECTS_CHANGED_EVENT = "crm-supabase-projects-changed";
+
 /** Ensures `clientId` exists for JSON rows saved before client linkage. */
 export function normalizeStoredProject(row: MockProject): MockProject {
   const clientId =

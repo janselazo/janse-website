@@ -337,6 +337,8 @@ export interface MockDeal {
   contactEmail: string;
   createdAt: string;
   expectedClose: string;
+  /** Supabase `deal.website` — optional URL for the account */
+  website?: string | null;
   /** Set when row comes from Supabase — edits sync to `deal` + linked `lead` */
   leadId?: string;
 }

@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { User, Plug, Upload, Trash2, KeyRound } from "lucide-react";
+import { User, Plug, Upload, Trash2, KeyRound, Zap } from "lucide-react";
 import {
   updateProfile,
   updatePassword,
@@ -99,9 +99,7 @@ function SettingsPageViewInner({ initial }: { initial: SettingsInitial }) {
 
       <div className="mt-8">
         {activeTab === "profile" && <ProfileTab initial={initial} />}
-        {activeTab === "integrations" && (
-          <PlaceholderTab title="Integrations" />
-        )}
+        {activeTab === "integrations" && <IntegrationsTab />}
       </div>
     </div>
   );
@@ -115,13 +113,143 @@ export default function SettingsPageView({ initial }: { initial: SettingsInitial
   );
 }
 
-function PlaceholderTab({ title }: { title: string }) {
+type IntegrationItem = {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  available: boolean;
+};
+
+const INTEGRATIONS: IntegrationItem[] = [
+  {
+    id: "twilio-sms",
+    name: "Twilio SMS",
+    category: "Communication",
+    description: "Two-way SMS messaging",
+    available: true,
+  },
+  {
+    id: "facebook-marketplace",
+    name: "Facebook Marketplace",
+    category: "Marketplace",
+    description: "Marketplace lead capture",
+    available: false,
+  },
+  {
+    id: "facebook-instagram",
+    name: "Facebook & Instagram",
+    category: "Social",
+    description: "Post content & manage Messenger/IG DMs",
+    available: true,
+  },
+  {
+    id: "tiktok",
+    name: "TikTok",
+    category: "Social",
+    description: "Post videos & manage TikTok DMs",
+    available: true,
+  },
+  {
+    id: "youtube",
+    name: "YouTube",
+    category: "Social",
+    description: "Upload videos & manage YouTube channel",
+    available: false,
+  },
+  {
+    id: "google-my-business",
+    name: "Google My Business",
+    category: "Reviews",
+    description: "Manage Google reviews & business profile",
+    available: true,
+  },
+  {
+    id: "google-ads",
+    name: "Google Ads",
+    category: "Advertising",
+    description: "Google lead form extensions",
+    available: false,
+  },
+  {
+    id: "sendgrid",
+    name: "SendGrid",
+    category: "Communication",
+    description: "Email parsing for inbound leads",
+    available: false,
+  },
+];
+
+function categoryPillClass(category: string) {
+  const c = category.toLowerCase();
+  if (c === "communication")
+    return "bg-sky-100 text-sky-800 dark:bg-sky-950/50 dark:text-sky-200";
+  if (c === "marketplace")
+    return "bg-violet-100 text-violet-800 dark:bg-violet-950/50 dark:text-violet-200";
+  if (c === "social")
+    return "bg-fuchsia-100 text-fuchsia-900 dark:bg-fuchsia-950/45 dark:text-fuchsia-200";
+  if (c === "reviews")
+    return "bg-emerald-100 text-emerald-900 dark:bg-emerald-950/45 dark:text-emerald-200";
+  if (c === "advertising")
+    return "bg-amber-100 text-amber-950 dark:bg-amber-950/40 dark:text-amber-200";
+  return "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300";
+}
+
+function IntegrationsTab() {
   return (
-    <div className="rounded-2xl border border-dashed border-border bg-white/80 px-8 py-16 text-center">
-      <p className="text-sm font-medium text-text-primary">{title}</p>
-      <p className="mt-2 text-sm text-text-secondary">
-        This section is coming soon.
+    <div>
+      <p className="text-sm text-text-secondary dark:text-zinc-400">
+        Connect channels and tools to capture leads and keep conversations in
+        one place.
       </p>
+      <ul className="mt-6 space-y-3" role="list">
+        {INTEGRATIONS.map((item) => (
+          <li
+            key={item.id}
+            className="flex gap-4 rounded-2xl border border-border bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/80"
+          >
+            <div
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800/90"
+              aria-hidden
+            >
+              <Zap className="h-5 w-5 text-zinc-500 dark:text-zinc-400" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2 gap-y-1">
+                <h2 className="text-sm font-semibold text-text-primary dark:text-zinc-100">
+                  {item.name}
+                </h2>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${categoryPillClass(item.category)}`}
+                >
+                  {item.category}
+                </span>
+              </div>
+              <p className="mt-1 text-sm text-text-secondary dark:text-zinc-400">
+                {item.description}
+              </p>
+            </div>
+            <div className="flex shrink-0 items-start pt-0.5">
+              {item.available ? (
+                <button
+                  type="button"
+                  className="rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm font-medium text-text-primary shadow-sm transition-colors hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+                >
+                  Configure
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="cursor-not-allowed rounded-xl border border-transparent bg-transparent px-3.5 py-2 text-sm font-medium text-text-secondary/45 dark:text-zinc-500"
+                >
+                  Coming Soon
+                </button>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

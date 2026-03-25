@@ -429,6 +429,7 @@ export async function updateDealRecord(input: {
   stage: string;
   expectedClose: string | null;
   contactEmail: string | null;
+  website: string | null;
 }) {
   const supabase = await createClient();
   const {
@@ -453,6 +454,7 @@ export async function updateDealRecord(input: {
       stage: input.stage,
       expected_close: input.expectedClose,
       contact_email: input.contactEmail?.trim() || null,
+      website: input.website?.trim() || null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", input.dealId.trim())

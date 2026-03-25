@@ -22,7 +22,7 @@ export default async function PortalProjectPage({ params }: Props) {
 
   const { data: project, error: pErr } = await supabase
     .from("project")
-    .select("id, title, status, description, target_date")
+    .select("id, title, status, description, target_date, website")
     .eq("id", id)
     .eq("client_id", profile.client_id)
     .maybeSingle();
@@ -54,6 +54,23 @@ export default async function PortalProjectPage({ params }: Props) {
       {project.description ? (
         <p className="mt-4 text-sm leading-relaxed text-text-secondary">
           {project.description}
+        </p>
+      ) : null}
+      {project.website ? (
+        <p className="mt-4 text-sm">
+          <span className="text-text-secondary">Site: </span>
+          <a
+            href={
+              /^https?:\/\//i.test(project.website)
+                ? project.website
+                : `https://${project.website}`
+            }
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-accent hover:underline"
+          >
+            {project.website.replace(/^https?:\/\//i, "")}
+          </a>
         </p>
       ) : null}
 

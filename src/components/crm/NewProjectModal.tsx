@@ -62,8 +62,8 @@ export default function NewProjectModal({
   /** When set, modal edits this row (calls `onUpdate` instead of `onAdd`). */
   editProject?: MockProject | null;
   onClose: () => void;
-  onAdd: (p: MockProject) => void;
-  onUpdate?: (p: MockProject) => void;
+  onAdd: (p: MockProject) => void | Promise<void>;
+  onUpdate?: (p: MockProject) => void | Promise<void>;
 }) {
   const teamMembers = useCrmTeamMembers();
   const [title, setTitle] = useState("");
@@ -79,6 +79,7 @@ export default function NewProjectModal({
   const [clientsLoading, setClientsLoading] = useState(false);
   const [clientsError, setClientsError] = useState<string | null>(null);
   const [clientId, setClientId] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const appliedDealClientRef = useRef(false);
 
   const lockClient = Boolean(lockedClientId?.trim()) && !editProject;
@@ -213,7 +214,7 @@ export default function NewProjectModal({
   const labelClass =
     "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-text-primary";
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
     if (!isSupabaseConfigured() || !clientId.trim()) return;
@@ -229,40 +230,45 @@ export default function NewProjectModal({
       ? teamMembers.find((m) => m.id === teamMemberId)
       : undefined;
     const name = member?.name.trim() ?? "";
-    if (editProject) {
-      if (onUpdate) {
-        onUpdate({
-          ...editProject,
-          title: title.trim(),
-          plan,
-          clientId: client.id,
-          clientName: clientPickerLabel(client),
-          teamId: member ? member.teamId : editProject.teamId,
-          teamName: name || null,
-          projectType,
-          expectedEndDate: endDate || "TBD",
-          budget: budgetNum,
-          website: website.trim() || null,
-        });
+    setSubmitting(true);
+    try {
+      if (editProject) {
+        if (onUpdate) {
+          await onUpdate({
+            ...editProject,
+            title: title.trim(),
+            plan,
+            clientId: client.id,
+            clientName: clientPickerLabel(client),
+            teamId: member ? member.teamId : editProject.teamId,
+            teamName: name || null,
+            projectType,
+            expectedEndDate: endDate || "TBD",
+            budget: budgetNum,
+            website: website.trim() || null,
+          });
+        }
+        return;
       }
-      return;
+      await onAdd({
+        id: createProjectId(),
+        title: title.trim(),
+        plan,
+        clientId: client.id,
+        clientName: clientPickerLabel(client),
+        teamId: member ? member.teamId : "team-general",
+        teamName: name || null,
+        projectType,
+        color: "#6366f1",
+        expectedEndDate: endDate || "TBD",
+        budget: budgetNum,
+        website: website.trim() || null,
+        sprintCount: 0,
+        taskCount: 0,
+      });
+    } finally {
+      setSubmitting(false);
     }
-    onAdd({
-      id: createProjectId(),
-      title: title.trim(),
-      plan,
-      clientId: client.id,
-      clientName: clientPickerLabel(client),
-      teamId: member ? member.teamId : "team-general",
-      teamName: name || null,
-      projectType,
-      color: "#6366f1",
-      expectedEndDate: endDate || "TBD",
-      budget: budgetNum,
-      website: website.trim() || null,
-      sprintCount: 0,
-      taskCount: 0,
-    });
   }
 
   const canPickClient =
@@ -517,10 +523,16 @@ export default function NewProjectModal({
             </button>
             <button
               type="submit"
-              disabled={submitDisabled}
+              disabled={submitDisabled || submitting}
               className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-600 dark:hover:bg-blue-500"
             >
-              {isEdit ? "Save changes" : "Add project"}
+              {submitting
+                ? isEdit
+                  ? "Saving…"
+                  : "Adding…"
+                : isEdit
+                  ? "Save changes"
+                  : "Add project"}
             </button>
           </div>
         </form>
