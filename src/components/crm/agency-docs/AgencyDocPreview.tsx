@@ -23,7 +23,7 @@ export default function AgencyDocPreview({
 
   return (
     <article
-      className="max-w-2xl space-y-4 text-base leading-relaxed text-text-secondary dark:text-zinc-400"
+      className="max-w-2xl space-y-4 text-justify text-base leading-relaxed text-text-secondary dark:text-zinc-400"
       aria-label="Preview"
     >
       {blocks.map((block, i) => (
