@@ -39,7 +39,7 @@ export default function AgencyDocHubCardToolbar({
 
   return (
     <>
-      <div className="absolute bottom-3 right-3 z-10 flex items-center gap-px rounded-md border border-border/80 bg-white/95 p-px shadow-sm backdrop-blur-sm dark:border-zinc-700/90 dark:bg-zinc-900/95">
+      <div className="absolute bottom-3 right-3 z-10 flex items-center gap-px rounded-md border border-border/80 bg-white/95 p-px shadow-sm backdrop-blur-sm transition-opacity duration-150 motion-reduce:transition-none dark:border-zinc-700/90 dark:bg-zinc-900/95 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100">
         <button
           type="button"
           onClick={(e) => {

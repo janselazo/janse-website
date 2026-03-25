@@ -8,6 +8,7 @@ import {
 } from "@/lib/crm/agency-docs";
 import { fetchCustomDocBySlug } from "@/lib/crm/agency-custom-doc-server";
 import { loadAgencyWorkspaceDocBody } from "@/lib/crm/agency-docs-load";
+import { mergeHubCardOverrides } from "@/lib/crm/agency-docs-hub";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { ChevronLeft } from "lucide-react";
 
@@ -25,8 +26,10 @@ export default async function AgencyDocPage({ params }: PageProps) {
 
   if (!builtIn && !custom) notFound();
 
-  const title = builtIn?.title ?? custom!.title;
-  const description = builtIn?.description ?? custom!.description;
+  const { title, description } = await mergeHubCardOverrides(slug, {
+    title: builtIn?.title ?? custom!.title,
+    description: builtIn?.description ?? custom!.description,
+  });
   const fallback = builtIn
     ? defaultBodyFromDefinition(builtIn)
     : DEFAULT_CUSTOM_DOC_BODY;

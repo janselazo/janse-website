@@ -244,7 +244,7 @@ export default function AgencyDocEditor({
               </div>
 
               {editingId !== row.id ? (
-                <div className="flex shrink-0 items-center gap-0.5 pt-0.5 opacity-70 transition-opacity group-hover:opacity-100">
+                <div className="flex shrink-0 items-center gap-0.5 pt-0.5 transition-opacity duration-150 motion-reduce:transition-none [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100">
                   <button
                     type="button"
                     onClick={() => addAfter(row.id)}

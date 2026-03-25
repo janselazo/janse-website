@@ -91,6 +91,7 @@ export default function AgencyDocsHubSortableGrid({
 
   return (
     <DndContext
+      id="agency-docs-hub-grid"
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
@@ -117,7 +118,7 @@ function HubDocCardStatic({ item }: { item: AgencyHubDocItem }) {
   const reg = getAgencyDocBySlug(item.slug);
   const Icon = reg?.icon ?? hubDocIcon(item.iconKey);
   return (
-    <li className="relative">
+    <li className="group relative">
       <AgencyDocHubCardToolbar
         slug={item.slug}
         title={item.title}
@@ -169,10 +170,10 @@ function HubDocCardSortable({
   const Icon = reg?.icon ?? hubDocIcon(item.iconKey);
 
   return (
-    <li ref={setNodeRef} style={style} className="relative">
+    <li ref={setNodeRef} style={style} className="group relative">
       <button
         type="button"
-        className="absolute bottom-3 left-3 z-10 flex cursor-grab touch-none rounded-md border border-border/80 bg-white/95 p-1 text-text-secondary shadow-sm backdrop-blur-sm hover:bg-surface active:cursor-grabbing dark:border-zinc-700/90 dark:bg-zinc-900/95 dark:hover:bg-zinc-800"
+        className="absolute bottom-3 left-3 z-10 flex cursor-grab touch-none rounded-md border border-border/80 bg-white/95 p-1 text-text-secondary shadow-sm backdrop-blur-sm transition-opacity duration-150 hover:bg-surface active:cursor-grabbing motion-reduce:transition-none dark:border-zinc-700/90 dark:bg-zinc-900/95 dark:hover:bg-zinc-800 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100"
         {...attributes}
         {...listeners}
         aria-label="Drag to reorder"

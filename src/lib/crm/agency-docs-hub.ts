@@ -32,6 +32,42 @@ type HubCandidate = {
   sortFallback: number;
 };
 
+/**
+ * Applies `agency_doc_hub_card` title/description overrides to a baseline.
+ * Same rules as hub grid cards so the doc detail header stays in sync.
+ */
+export async function mergeHubCardOverrides(
+  slug: string,
+  baseline: { title: string; description: string }
+): Promise<{ title: string; description: string }> {
+  if (!isSupabaseConfigured()) return baseline;
+
+  try {
+    const supabase = await createClient();
+    const { data: row, error } = await supabase
+      .from("agency_doc_hub_card")
+      .select("title_override, description_override")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (error || !row) return baseline;
+
+    const r = row as Pick<
+      HubCardRow,
+      "title_override" | "description_override"
+    >;
+    const title = r.title_override?.trim()
+      ? r.title_override.trim()
+      : baseline.title;
+    const description = r.description_override?.trim()
+      ? r.description_override.trim()
+      : baseline.description;
+    return { title, description };
+  } catch {
+    return baseline;
+  }
+}
+
 /** Canonical title/description for comparing hub card edits (registry or custom row, not overrides). */
 export async function getHubCardBaseline(
   slug: string
