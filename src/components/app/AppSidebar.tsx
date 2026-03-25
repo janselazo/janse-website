@@ -4,22 +4,23 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
-  FolderKanban,
-  UsersRound,
-  Users,
   BarChart3,
-  FileBarChart,
+  BookOpen,
   Building2,
-  Handshake,
   Calendar,
-  Settings,
-  LogOut,
   ChevronDown,
-  MessageSquare,
+  FileBarChart,
   FileText,
-  Workflow,
+  FolderKanban,
+  Handshake,
+  LayoutDashboard,
+  LogOut,
+  MessageSquare,
+  Settings,
   Timer,
+  Users,
+  UsersRound,
+  Workflow,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { PROSPECTING_SECTIONS } from "@/lib/crm/prospecting-nav";
@@ -46,6 +47,7 @@ const agencyNav = [
   { href: "/capacity", label: "Capacity", icon: BarChart3 },
   { href: "/automations", label: "Automations", icon: Workflow },
   { href: "/reports", label: "Reports", icon: FileBarChart },
+  { href: "/docs", label: "Docs", icon: BookOpen },
 ];
 
 export default function AppSidebar() {
