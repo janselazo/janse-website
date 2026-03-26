@@ -100,8 +100,8 @@ export const developmentPricingTableCategories: PricingTableCategory[] = [
       {
         label: "Price",
         starter: cell("$2,999"),
-        growth: cell("$7,999"),
-        scale: cell("$14,999"),
+        growth: cell("$6,999"),
+        scale: cell("$12,999"),
       },
       {
         label: "Delivery",
@@ -156,7 +156,7 @@ export const developmentPricingTableCategories: PricingTableCategory[] = [
         label: "Price",
         starter: cell("$3,999"),
         growth: cell("$9,999"),
-        scale: cell("$18,999"),
+        scale: cell("$14,999"),
       },
       {
         label: "Delivery",
@@ -216,8 +216,8 @@ export const developmentPricingTableCategories: PricingTableCategory[] = [
       {
         label: "Price",
         starter: cell("$999"),
-        growth: cell("$4,999"),
-        scale: cell("$9,999"),
+        growth: cell("$3,999"),
+        scale: cell("$6,999"),
       },
       {
         label: "Delivery",

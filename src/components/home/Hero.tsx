@@ -43,8 +43,11 @@ export default function Hero() {
           transition={{ duration: 0.5, delay: 0.12 }}
           className="mx-auto mt-4 max-w-2xl text-lg font-medium leading-snug text-text-secondary sm:text-xl"
         >
-          We design, build, and launch your software product fast — so you can
-          validate, grow, and scale without the wait.
+          We turn your{" "}
+          <span className="font-semibold text-emerald-500">idea</span> into a
+          ready-to-launch software product in{" "}
+          <span className="font-semibold text-accent">2 weeks</span> — fast,
+          affordable, and built to grow.
         </motion.p>
 
         <motion.div
