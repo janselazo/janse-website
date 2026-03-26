@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState, useTransition } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { User, Plug, Upload, Trash2, KeyRound, Zap } from "lucide-react";
 import {
@@ -124,9 +125,10 @@ type IntegrationItem = {
 const INTEGRATIONS: IntegrationItem[] = [
   {
     id: "twilio-sms",
-    name: "Twilio SMS",
+    name: "Twilio SMS & WhatsApp",
     category: "Communication",
-    description: "Two-way SMS messaging",
+    description:
+      "Two-way SMS & WhatsApp messaging, automated campaigns, and inbound lead capture",
     available: true,
   },
   {
@@ -247,12 +249,21 @@ function IntegrationsTab() {
             </div>
             <div className="flex shrink-0 items-start pt-0.5">
               {item.available ? (
-                <button
-                  type="button"
-                  className="rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm font-medium text-text-primary shadow-sm transition-colors hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
-                >
-                  Configure
-                </button>
+                item.id === "twilio-sms" ? (
+                  <Link
+                    href="/settings/integrations/twilio"
+                    className="rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm font-medium text-text-primary shadow-sm transition-colors hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+                  >
+                    Configure
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    className="rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-sm font-medium text-text-primary shadow-sm transition-colors hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+                  >
+                    Configure
+                  </button>
+                )
               ) : (
                 <button
                   type="button"

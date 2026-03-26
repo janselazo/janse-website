@@ -31,7 +31,7 @@ export default function Hero() {
           initial={{ opacity: 1, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.06 }}
-          className="heading-display text-4xl font-bold leading-[1.15] text-text-primary sm:text-5xl sm:leading-[1.12] lg:text-6xl lg:leading-[1.1]"
+          className="heading-display text-5xl font-bold leading-[1.12] text-text-primary sm:text-6xl sm:leading-[1.1] lg:text-7xl lg:leading-[1.08]"
         >
           <span className="block">We build and scale</span>
           <span className="mt-1 block text-accent">software products</span>
