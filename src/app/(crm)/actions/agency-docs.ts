@@ -167,32 +167,6 @@ export async function hideAgencyDocHubCard(slug: string) {
   return { ok: true as const };
 }
 
-export async function unhideAgencyDocHubCard(slug: string) {
-  const baseline = await getHubCardBaseline(slug);
-  if (!baseline) return { error: "Invalid document" as const };
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "Unauthorized" as const };
-
-  const now = new Date().toISOString();
-  const { error } = await supabase
-    .from("agency_doc_hub_card")
-    .update({
-      hidden: false,
-      updated_by: user.id,
-      updated_at: now,
-    })
-    .eq("slug", slug);
-
-  if (error) return { error: error.message };
-
-  revalidatePath("/docs");
-  return { ok: true as const };
-}
-
 async function allowedHubSlugSet(): Promise<Set<string>> {
   const custom = await fetchAllCustomSlugs();
   return new Set([

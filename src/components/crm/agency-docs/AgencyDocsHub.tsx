@@ -1,15 +1,10 @@
-import {
-  getAgencyHubDocItems,
-  getHiddenAgencyHubDocItems,
-} from "@/lib/crm/agency-docs-hub";
+import { getAgencyHubDocItems } from "@/lib/crm/agency-docs-hub";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import AgencyNewDocButton from "@/components/crm/agency-docs/AgencyNewDocButton";
 import AgencyDocsHubSortableGrid from "@/components/crm/agency-docs/AgencyDocsHubSortableGrid";
-import AgencyDocsHubHiddenRestore from "@/components/crm/agency-docs/AgencyDocsHubHiddenRestore";
 
 export default async function AgencyDocsHub() {
   const items = await getAgencyHubDocItems();
-  const hiddenItems = await getHiddenAgencyHubDocItems();
   const canPersist = isSupabaseConfigured();
 
   return (
@@ -39,14 +34,11 @@ export default async function AgencyDocsHub() {
 
       {items.length === 0 ? (
         <p className="mt-10 rounded-2xl border border-dashed border-border bg-surface/50 px-6 py-12 text-center text-sm text-text-secondary dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-400">
-          No documents on this grid. Removed cards are only hidden here; doc pages
-          still work from a direct link.
+          No documents on this grid yet.
         </p>
       ) : (
         <AgencyDocsHubSortableGrid items={items} canPersist={canPersist} />
       )}
-
-      {canPersist ? <AgencyDocsHubHiddenRestore items={hiddenItems} /> : null}
     </div>
   );
 }
