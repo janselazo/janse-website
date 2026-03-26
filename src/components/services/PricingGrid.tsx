@@ -189,8 +189,8 @@ export default function PricingGrid() {
     <section className="mx-auto max-w-7xl px-6 py-24 lg:px-8">
       <SectionHeading
         label="Pricing"
-        title="Development &"
-        titleAccent="Growth"
+        title="Development"
+        titleAccent="Services"
         titleAccentInline
         description={
           <>

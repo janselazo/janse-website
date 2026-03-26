@@ -6,8 +6,8 @@ import { SECTION_EYEBROW_CLASSNAME } from "@/components/ui/SectionHeading";
 
 export default function CaseStudiesHero() {
   return (
-    <section className="hero-sky relative flex min-h-[75vh] items-center justify-center overflow-hidden pt-28">
-      <div className="relative z-10 mx-auto max-w-4xl px-6 text-center">
+    <section className="hero-sky relative overflow-hidden pb-24 pt-28 sm:pb-32 sm:pt-32">
+      <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center px-6 text-center">
         <motion.span
           initial={{ opacity: 1, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -21,29 +21,28 @@ export default function CaseStudiesHero() {
           initial={{ opacity: 1, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.06 }}
-          className="heading-display text-4xl font-bold leading-tight text-text-primary sm:text-5xl lg:text-6xl"
+          className="heading-display flex flex-col gap-2 text-4xl font-bold leading-[1.12] tracking-tight text-text-primary sm:gap-3 sm:text-5xl sm:leading-[1.1] lg:text-6xl lg:leading-[1.08]"
         >
           <span className="block">Products that</span>
-          <span className="mt-1 block text-accent">scale</span>
+          <span className="block text-accent">scale</span>
         </motion.h1>
 
         <motion.p
           initial={{ opacity: 1, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.14 }}
-          className="mx-auto mt-6 max-w-2xl text-base font-medium leading-relaxed text-text-secondary sm:text-lg"
+          className="mx-auto mt-8 max-w-xl text-base font-medium leading-relaxed text-pretty text-text-primary/80 sm:mt-9 sm:text-lg"
         >
-          Web apps, mobile apps, websites, and ecommerce — from idea toward
-          product-market fit. Agency builds for clients and Studio products we
-          own; each write-up is something in production, built with growth in mind
-          and handed off so your team can run it.
+          We build products that move fast and last long. Every project we take
+          on is a reflection of our commitment to speed, quality, and real
+          results — from early-stage MVPs to fully scaled software products.
         </motion.p>
 
         <motion.div
           initial={{ opacity: 1, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.22 }}
-          className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4"
+          className="mt-11 flex w-full max-w-md flex-col items-stretch justify-center gap-3 sm:mt-12 sm:flex-row sm:items-center sm:justify-center sm:gap-4"
         >
           <Button href="#projects" variant="primary" size="lg">
             Explore projects

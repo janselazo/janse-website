@@ -25,10 +25,10 @@ export default function PricingHero() {
           initial={{ opacity: 1, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.06 }}
-          className="heading-display text-4xl font-bold leading-tight tracking-tight text-text-primary sm:text-5xl lg:text-6xl"
+          className="heading-display flex flex-col gap-2 text-4xl font-bold leading-[1.12] tracking-tight text-text-primary sm:gap-3 sm:text-5xl sm:leading-[1.1] lg:text-6xl lg:leading-[1.08]"
         >
-          <span className="block">Development &amp; Growth</span>
-          <span className="mt-1 block text-accent">Services</span>
+          <span className="block">Development</span>
+          <span className="block text-accent">Services</span>
         </motion.h1>
 
         <motion.p

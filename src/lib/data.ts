@@ -43,8 +43,7 @@ export type ProjectCategory =
   | "mobile-app"
   | "web-app"
   | "website"
-  | "ecommerce-store"
-  | "product-growth";
+  | "ecommerce-store";
 
 export interface PortfolioProject {
   title: string;
@@ -135,15 +134,15 @@ export const services: Service[] = [
     icon: "zap",
   },
   {
-    title: "Product-led growth",
+    title: "AI-Powered Features & Integrations",
     description:
-      "Acquisition, retention, and monetization — shipped experiments and honest readouts tied to revenue, not vanity charts.",
+      "We integrate AI capabilities into your product — from smart automations and lead scoring to intelligent workflows — so your software delivers more value to your users.",
     details: [
-      "Funnels, onboarding, lifecycle, and churn diagnostics",
-      "Pricing, packaging, and A/B tests coordinated with your stack",
-      "Weekly rhythm: measure, decide, double down or kill — see Growth pricing",
+      "AI automations and intelligent workflows",
+      "Lead scoring and recommendation engines",
+      "Seamless integrations with your existing stack",
     ],
-    icon: "chart",
+    icon: "sparkle",
   },
 ];
 
@@ -214,9 +213,9 @@ export const portfolioProjects: PortfolioProject[] = [
   // Client case studies (current engagements)
   {
     client: "Taptok",
-    title: "Digital business card SaaS & mobile app",
+    title: "Digital Business Card & Networking App",
     description:
-      "Built the full-stack platform behind Taptok: NFC tap-to-share cards, QR code networking, contact management with lead enrichment and AI-powered scoring, analytics dashboards, and team management — all designed to replace paper cards and turn every interaction into a measurable lead. Outcome: a production SaaS with free, professional, and enterprise tiers serving users from Miami and scaling nationwide.",
+      "Built a full-stack SaaS platform with NFC tap-to-share, QR networking, AI-powered lead scoring, and team management — turning every interaction into a measurable business opportunity.",
     tags: ["SaaS", "Mobile", "NFC", "Growth"],
     type: "agency",
     category: "mobile-app",
@@ -224,19 +223,19 @@ export const portfolioProjects: PortfolioProject[] = [
   },
   {
     client: "Apex Inspection Pro",
-    title: "SaaS home inspection platform",
+    title: "SaaS Platform for Home Inspectors",
     description:
-      "Shipped a production SaaS web application so inspectors capture residential and commercial property details, bind the right report template, and complete structured sections in one guided flow. Outcome: a single source of truth per job, fewer incomplete reports, and a product the team can extend without re-platforming.",
-    tags: ["SaaS", "Inspections", "Web app"],
+      "Built a production-ready web app that lets inspectors capture property details, auto-fill report templates, and close jobs in one guided flow — eliminating incomplete reports for good.",
+    tags: ["SaaS", "Inspections", "Web App"],
     type: "agency",
     category: "web-app",
     result: "Production launch",
   },
   {
     client: "TQMuch",
-    title: "Ecommerce store — nationwide food delivery",
+    title: "Nationwide Food Delivery Store",
     description:
-      "Ecommerce store bringing authentic tequeños to doorsteps across the U.S. with temperature-controlled shipping. Product catalog, mobile-first checkout, and fulfillment workflows — so the team can focus on the food while the store handles nationwide orders.",
+      "Built a mobile-first ecommerce store with a full product catalog, temperature-controlled shipping, and automated fulfillment — so the team focuses on the food, not the orders.",
     tags: ["Ecommerce", "Food & Beverage", "DTC"],
     type: "agency",
     category: "ecommerce-store",
@@ -244,9 +243,9 @@ export const portfolioProjects: PortfolioProject[] = [
   },
   {
     client: "Craveclean",
-    title: "Ecommerce store & catalog operations",
+    title: "Ecommerce Store & Catalog Operations",
     description:
-      "End-to-end online store with a clean catalog, PDPs tuned for clarity, checkout and payments, and back-office patterns so marketing and fulfillment could update the catalog without waiting on deploys. Outcome: live commerce with a storefront the brand runs day to day.",
+      "Built a full online store with clean product pages, optimized checkout, and a self-managed catalog — so the team runs the brand day to day without waiting on developers.",
     tags: ["Ecommerce", "Store", "Checkout"],
     type: "agency",
     category: "ecommerce-store",
@@ -254,19 +253,20 @@ export const portfolioProjects: PortfolioProject[] = [
   },
   {
     client: "USRallyStripes",
-    title: "Automotive ecommerce storefront",
+    title: "Automotive Ecommerce Storefront",
     description:
-      "Rally- and automotive-themed ecommerce build focused on speed, mobile checkout, and catalog organization for kits, accessories, and seasonal drops. Outcome: a store that stays fast under traffic spikes and gives the team levers to merchandise without engineering every change.",
+      "Built a performance-focused store for automotive kits, accessories, and seasonal drops — with mobile checkout and easy merchandising that stays fast under traffic spikes.",
     tags: ["Ecommerce", "Automotive", "Performance"],
     type: "agency",
     category: "ecommerce-store",
     result: "Store live",
   },
   {
-    title: "SoldTools",
+    client: "SoldTools",
+    title: "Sales Intelligence Platform for Car Dealers",
     description:
-      "Live in-house product for car sales teams: lead capture from multiple sources, appointment scheduling, deal intelligence, and a referral engine—shipping in production at app.soldtools.com.",
-    tags: ["SaaS", "Automotive", "Web app"],
+      "A live in-house SaaS tool with lead capture, appointment scheduling, deal intelligence, and a referral engine — built and shipped at app.soldtools.com.",
+    tags: ["SaaS", "Automotive", "Web App"],
     type: "studio",
     category: "web-app",
     status: "live",
@@ -277,48 +277,57 @@ export const portfolioProjects: PortfolioProject[] = [
 export const featuredProjects: FeaturedProject[] = [
   {
     client: "Taptok",
-    title: "SaaS platform & mobile app",
+    title: "Digital Business Card & Networking App",
     description:
-      "Digital business card platform with NFC tap-to-share, QR codes, contact management, lead scoring, and analytics — helping professionals replace paper cards and network smarter.",
-    tags: ["SaaS", "Mobile", "NFC"],
+      "Built a full-stack SaaS platform with NFC tap-to-share, QR networking, AI-powered lead scoring, and team management — turning every interaction into a measurable business opportunity.",
+    tags: ["SaaS", "Mobile", "NFC", "Growth"],
     type: "agency",
     result: "Production launch",
   },
   {
     client: "Apex Inspection Pro",
-    title: "SaaS web application",
+    title: "SaaS Platform for Home Inspectors",
     description:
-      "An intuitive, easy-to-use SaaS web app for inspection teams: enter residential or commercial property details, select the inspection report tied to that property, and work through the categories in that report so every run follows the same clear structure.",
-    tags: ["SaaS", "Web app", "Inspections"],
+      "Built a production-ready web app that lets inspectors capture property details, auto-fill report templates, and close jobs in one guided flow — eliminating incomplete reports for good.",
+    tags: ["SaaS", "Inspections", "Web App"],
     type: "agency",
     result: "Production launch",
   },
   {
     client: "TQMuch",
-    title: "Ecommerce store",
+    title: "Nationwide Food Delivery Store",
     description:
-      "Online store shipping authentic tequeños nationwide — product catalog, mobile checkout, and fulfillment tools so the team runs daily operations without engineering.",
+      "Built a mobile-first ecommerce store with a full product catalog, temperature-controlled shipping, and automated fulfillment — so the team focuses on the food, not the orders.",
     tags: ["Ecommerce", "Food & Beverage", "DTC"],
     type: "agency",
-    result: "Shipped to users",
+    result: "Live commerce",
   },
   {
     client: "Craveclean",
-    title: "Ecommerce store",
+    title: "Ecommerce Store & Catalog Operations",
     description:
-      "Full online store: catalog and PDPs, checkout and payments, and day-to-day tooling so the brand could run fulfillment without blocking on engineering.",
+      "Built a full online store with clean product pages, optimized checkout, and a self-managed catalog — so the team runs the brand day to day without waiting on developers.",
     tags: ["Ecommerce", "Store", "Checkout"],
     type: "agency",
     result: "Live commerce",
   },
   {
     client: "USRallyStripes",
-    title: "Ecommerce storefront",
+    title: "Automotive Ecommerce Storefront",
     description:
-      "Automotive rally–focused ecommerce: fast storefront, mobile-first buying flows, and catalog structure for kits, accessories, and drops the team can merchandise easily.",
+      "Built a performance-focused store for automotive kits, accessories, and seasonal drops — with mobile checkout and easy merchandising that stays fast under traffic spikes.",
     tags: ["Ecommerce", "Automotive", "Performance"],
     type: "agency",
     result: "Store live",
+  },
+  {
+    client: "SoldTools",
+    title: "Sales Intelligence Platform for Car Dealers",
+    description:
+      "A live in-house SaaS tool with lead capture, appointment scheduling, deal intelligence, and a referral engine — built and shipped at app.soldtools.com.",
+    tags: ["SaaS", "Automotive", "Web App"],
+    type: "studio",
+    result: "Production app",
   },
 ];
 

@@ -22,22 +22,23 @@ export default function ServicesHero() {
           initial={{ opacity: 1, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.06 }}
-          className="heading-display text-4xl font-bold leading-tight text-text-primary sm:text-5xl lg:text-6xl"
+          className="heading-display text-4xl font-bold leading-[1.15] tracking-tight text-balance text-text-primary sm:text-5xl sm:leading-[1.12] lg:text-6xl lg:leading-[1.1]"
         >
-          <span className="block">Web apps, mobile apps,</span>
-          <span className="mt-1 block text-accent">websites &amp; ecommerce</span>
+          <span className="text-text-primary">
+            We Build Software That Works{" "}
+          </span>
+          <span className="text-accent">Fast</span>
         </motion.h1>
 
         <motion.p
           initial={{ opacity: 1, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.14 }}
-          className="mx-auto mt-6 max-w-2xl text-base font-medium leading-relaxed text-text-secondary sm:text-lg"
+          className="mx-auto mt-8 max-w-2xl text-base font-medium leading-relaxed text-text-primary/80 sm:mt-9 sm:text-lg"
         >
-          Plus{" "}
-          <span className="text-text-primary">product-led growth</span> —
-          acquisition, retention, and monetization — backed by integrations, AI
-          where it earns its place, and automation that survives real ops.
+          Custom web apps, mobile apps, ecommerce stores, and AI-powered
+          products — designed, built, and launched for founders and businesses
+          ready to move.
         </motion.p>
 
         <motion.div

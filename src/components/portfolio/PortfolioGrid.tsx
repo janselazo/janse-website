@@ -14,7 +14,6 @@ const categoryFilters: { id: ProjectCategory | "all"; label: string }[] = [
   { id: "web-app", label: "Web App" },
   { id: "website", label: "Website" },
   { id: "ecommerce-store", label: "Ecommerce Store" },
-  { id: "product-growth", label: "Product Growth" },
 ];
 
 export default function PortfolioGrid() {
@@ -35,7 +34,7 @@ export default function PortfolioGrid() {
         title="Selected"
         titleAccent="work"
         titleAccentInline
-        description="Filter by type of work. Cards still show whether each build is Agency (client) or Studio (in-house)."
+        description="Some of the products we've designed, built, and launched for founders around the world."
       />
 
       <div className="mb-12 flex flex-wrap justify-center gap-2">

@@ -92,19 +92,15 @@ export default function ServicesGrid() {
       <SectionHeading
         label="Capabilities"
         title="Development"
-        titleAccent="& Growth"
+        titleAccent="Services"
         titleAccentInline
         description={
-          <>
-            <p>
-              <span className="font-medium text-text-primary">Development</span>{" "}
-              covers product across web, mobile, storefronts, and the glue in
-              between.{" "}
-              <span className="font-medium text-text-primary">Growth</span> is
-              experiments, funnels, and lifecycle work — always tied to metrics you
-              care about, not vanity dashboards.
-            </p>
-          </>
+          <p>
+            Whether you&apos;re starting from scratch or scaling an existing
+            product, we handle the full development process from strategy to
+            launch. No long timelines, no unnecessary complexity — just a reliable
+            team that turns your idea into a fully functional software product.
+          </p>
         }
       />
 
