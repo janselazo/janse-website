@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { updateLead } from "@/app/(crm)/actions/crm";
 import { LEAD_PROJECT_TYPE_OPTIONS } from "@/lib/crm/mock-data";
@@ -66,6 +66,7 @@ export default function LeadEditForm({
   deal: DealRow | null;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<string>("contact");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,6 +85,11 @@ export default function LeadEditForm({
   useEffect(() => {
     setExpectedClose(dateInputValue(deal?.expected_close));
   }, [lead.id, deal?.expected_close]);
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "deal") setActiveTab("deal");
+  }, [searchParams]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
   BookOpen,
@@ -28,15 +29,25 @@ import SoonBadge from "@/components/crm/prospecting/SoonBadge";
 import { projects as seedProjects } from "@/lib/crm/mock-data";
 import { getMergedProjectsList } from "@/lib/crm/projects-storage";
 
-const opportunitiesNav = [
+const opportunitiesNav: Array<{
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  nestedUnderDeals?: boolean;
+}> = [
   { href: "/leads", label: "Leads", icon: UsersRound },
   { href: "/deals", label: "Deals", icon: Handshake },
+  {
+    href: "/proposals",
+    label: "Proposals",
+    icon: FileText,
+    nestedUnderDeals: true,
+  },
   { href: "/conversations", label: "Conversations", icon: MessageSquare },
   { href: "/calendar", label: "Appointments", icon: Calendar },
 ];
 
 const workNav = [
-  { href: "/proposals", label: "Proposals", icon: FileText },
   { href: "/clients", label: "Clients", icon: Building2 },
   { href: "/projects", label: "Projects", icon: FolderKanban },
   { href: "/time-tracking", label: "Time Tracking", icon: Timer },
@@ -144,12 +155,19 @@ export default function AppSidebar() {
 
         {/* Opportunities */}
         <NavGroup label="Opportunities">
-          {opportunitiesNav.map(({ href, label, icon: Icon }) => (
-            <NavLink key={href} href={href} active={isActive(pathname, href)}>
-              <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
-              {label}
-            </NavLink>
-          ))}
+          {opportunitiesNav.map(
+            ({ href, label, icon: Icon, nestedUnderDeals }) => (
+              <NavLink
+                key={href}
+                href={href}
+                active={isActive(pathname, href)}
+                nestedUnderDeals={nestedUnderDeals}
+              >
+                <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+                {label}
+              </NavLink>
+            )
+          )}
         </NavGroup>
 
         {/* Work */}
@@ -261,16 +279,22 @@ function CollapsibleGroup({
 function NavLink({
   href,
   active,
+  nestedUnderDeals,
   children,
 }: {
   href: string;
   active: boolean;
+  nestedUnderDeals?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <Link
       href={href}
-      className={`flex w-full min-w-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+      className={`flex w-full min-w-0 items-center gap-2 rounded-xl py-2 text-sm font-medium transition-colors ${
+        nestedUnderDeals
+          ? "ml-2 border-l-2 border-border pl-3 pr-3 dark:border-zinc-700"
+          : "px-3"
+      } ${
         active
           ? "bg-accent/10 text-accent dark:bg-blue-500/12 dark:text-blue-400"
           : "text-text-secondary hover:bg-surface hover:text-text-primary dark:text-zinc-400 dark:hover:bg-zinc-800/70 dark:hover:text-zinc-100"

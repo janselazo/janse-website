@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Briefcase,
@@ -43,6 +44,8 @@ export interface Lead {
   notes?: string | null;
   project_type?: string | null;
   created_at?: string | null;
+  /** Most recently updated deal for this lead, if any */
+  deal?: { id: string; title: string | null } | null;
 }
 
 /** Dot color in status pill (matches stage). */
@@ -256,7 +259,8 @@ export default function LeadsView({ leads }: { leads: Lead[] }) {
       l.email?.toLowerCase().includes(q) ||
       l.company?.toLowerCase().includes(q) ||
       l.source?.toLowerCase().includes(q) ||
-      l.project_type?.toLowerCase().includes(q)
+      l.project_type?.toLowerCase().includes(q) ||
+      (l.deal?.title?.toLowerCase().includes(q) ?? false)
     );
   });
 
@@ -542,6 +546,14 @@ function LeadsPipelineBoard({
                 </span>
               </div>
             ) : null}
+            {lead.deal ? (
+              <Link
+                href={`/leads/${lead.id}?tab=deal`}
+                className="mt-1.5 block min-w-0 truncate text-xs font-medium text-accent hover:underline dark:text-blue-400"
+              >
+                {lead.deal.title?.trim() || "Untitled deal"}
+              </Link>
+            ) : null}
             <div className="mt-2 flex min-w-0 items-center gap-1.5 text-xs">
               <Briefcase
                 className="h-3.5 w-3.5 shrink-0 text-zinc-400"
@@ -651,7 +663,7 @@ function LeadsTable({
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-border bg-white shadow-sm">
-      <table className="w-full min-w-[72rem] text-left text-sm">
+      <table className="w-full min-w-[80rem] text-left text-sm">
         <thead>
           <tr className="border-b border-border">
             <th className="px-4 py-3 font-semibold text-text-secondary">Name</th>
@@ -660,6 +672,7 @@ function LeadsTable({
             <th className="px-4 py-3 font-semibold text-text-secondary">Status</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">Service</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">Company</th>
+            <th className="px-4 py-3 font-semibold text-text-secondary">Deal</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">Source</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">Date</th>
             <th className="px-4 py-3 font-semibold text-text-secondary">Actions</th>
@@ -853,6 +866,18 @@ function LeadsTable({
                     >
                       {lead.company}
                     </span>
+                  ) : (
+                    <span className="text-text-secondary">—</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 align-top">
+                  {lead.deal ? (
+                    <Link
+                      href={`/leads/${lead.id}?tab=deal`}
+                      className="font-medium text-accent hover:underline dark:text-blue-400"
+                    >
+                      {lead.deal.title?.trim() || "Untitled deal"}
+                    </Link>
                   ) : (
                     <span className="text-text-secondary">—</span>
                   )}

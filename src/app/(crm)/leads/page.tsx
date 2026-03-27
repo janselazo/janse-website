@@ -21,6 +21,33 @@ export default async function LeadsPage() {
     .order("created_at", { ascending: false })
     .limit(200);
 
+  const leadRows = leads ?? [];
+  const leadIds = leadRows.map((l) => l.id);
+  const dealByLeadId = new Map<
+    string,
+    { id: string; title: string | null }
+  >();
+  if (leadIds.length > 0) {
+    const { data: dealRows } = await supabase
+      .from("deal")
+      .select("id, lead_id, title, updated_at")
+      .in("lead_id", leadIds)
+      .order("updated_at", { ascending: false });
+    for (const row of dealRows ?? []) {
+      if (!dealByLeadId.has(row.lead_id)) {
+        dealByLeadId.set(row.lead_id, {
+          id: row.id,
+          title: row.title,
+        });
+      }
+    }
+  }
+
+  const leadsWithDeals = leadRows.map((l) => ({
+    ...l,
+    deal: dealByLeadId.get(l.id) ?? null,
+  }));
+
   return (
     <div className="p-8">
       {error ? (
@@ -34,7 +61,7 @@ export default async function LeadsPage() {
           </p>
         </div>
       ) : (
-        <LeadsView leads={leads ?? []} />
+        <LeadsView leads={leadsWithDeals} />
       )}
     </div>
   );

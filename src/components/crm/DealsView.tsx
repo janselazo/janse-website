@@ -67,6 +67,26 @@ function formatDate(iso: string) {
   });
 }
 
+/** Stable pastel avatar styles for deal initials (distinct from stage badges). */
+const DEAL_AVATAR_CLASSES = [
+  "bg-sky-100 text-sky-800 ring-1 ring-sky-200/90 dark:bg-sky-500/20 dark:text-sky-100 dark:ring-sky-400/35",
+  "bg-violet-100 text-violet-800 ring-1 ring-violet-200/90 dark:bg-violet-500/20 dark:text-violet-100 dark:ring-violet-400/35",
+  "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200/90 dark:bg-emerald-500/20 dark:text-emerald-100 dark:ring-emerald-400/35",
+  "bg-amber-100 text-amber-900 ring-1 ring-amber-200/90 dark:bg-amber-500/20 dark:text-amber-50 dark:ring-amber-400/35",
+  "bg-rose-100 text-rose-800 ring-1 ring-rose-200/90 dark:bg-rose-500/20 dark:text-rose-100 dark:ring-rose-400/35",
+  "bg-cyan-100 text-cyan-900 ring-1 ring-cyan-200/90 dark:bg-cyan-500/20 dark:text-cyan-100 dark:ring-cyan-400/35",
+  "bg-indigo-100 text-indigo-800 ring-1 ring-indigo-200/90 dark:bg-indigo-500/20 dark:text-indigo-100 dark:ring-indigo-400/35",
+  "bg-fuchsia-100 text-fuchsia-800 ring-1 ring-fuchsia-200/90 dark:bg-fuchsia-500/20 dark:text-fuchsia-100 dark:ring-fuchsia-400/35",
+] as const;
+
+function dealAvatarClasses(dealId: string): string {
+  let h = 0;
+  for (let i = 0; i < dealId.length; i++) {
+    h = (Math.imul(31, h) + dealId.charCodeAt(i)) | 0;
+  }
+  return DEAL_AVATAR_CLASSES[Math.abs(h) % DEAL_AVATAR_CLASSES.length];
+}
+
 function dealQuickTaskContextLabel(deal: MockDeal): string {
   return (
     deal.contactName?.trim() ||
@@ -607,15 +627,13 @@ function DealsTableRow({
   onDelete: () => void;
 }) {
   const expectedCloseId = useId();
-  const stageForBadge = isEditing && draft ? draft.stage : deal.stage;
 
   return (
     <tr className="transition-colors hover:bg-surface/50 dark:hover:bg-zinc-900/40">
       <td className="px-4 py-3 align-top">
         <div className="flex items-start gap-2.5">
           <span
-            className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-            style={{ backgroundColor: DEAL_STAGE_COLORS[stageForBadge] }}
+            className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${dealAvatarClasses(deal.id)}`}
           >
             {initials}
           </span>

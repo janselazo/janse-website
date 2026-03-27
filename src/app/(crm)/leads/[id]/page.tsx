@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import LeadEditForm from "@/components/crm/LeadEditForm";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
@@ -58,7 +59,13 @@ export default async function LeadDetailPage({ params }: Props) {
           : "—"}
       </p>
       <div className="mt-8 max-w-2xl">
-        <LeadEditForm lead={lead} deal={deal} />
+        <Suspense
+          fallback={
+            <div className="h-64 animate-pulse rounded-2xl border border-border bg-surface/60 dark:bg-zinc-800/40" />
+          }
+        >
+          <LeadEditForm lead={lead} deal={deal} />
+        </Suspense>
       </div>
     </div>
   );

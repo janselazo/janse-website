@@ -208,7 +208,10 @@ export default function NetworkingEventsView() {
         </details>
       </header>
 
-      <section className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm ring-1 ring-black/[0.03] dark:border-zinc-800/90 dark:bg-zinc-900/80 dark:ring-white/[0.04]">
+      <section className="relative z-10 rounded-2xl border border-border bg-white shadow-sm ring-1 ring-black/[0.03] dark:border-zinc-800/90 dark:bg-zinc-900/80 dark:ring-white/[0.04]">
+        {/*
+          Do not use overflow-hidden here: it clips the date-range popover (absolute + z-50).
+        */}
         <div className="border-b border-border/80 bg-gradient-to-b from-surface/80 to-transparent px-5 py-4 dark:border-zinc-800 dark:from-zinc-800/50">
           <h2 className="text-sm font-semibold text-text-primary dark:text-zinc-100">
             Search
@@ -280,7 +283,7 @@ export default function NetworkingEventsView() {
 
               {dateOpen ? (
                 <div
-                  className="absolute left-0 right-0 z-50 mt-2 rounded-2xl border border-border bg-white p-3 shadow-xl dark:border-zinc-600 dark:bg-zinc-900 lg:right-auto lg:w-[min(100%,20rem)]"
+                  className="absolute left-0 right-0 z-[100] mt-2 rounded-2xl border border-border bg-white p-3 shadow-xl dark:border-zinc-600 dark:bg-zinc-900 lg:right-auto lg:w-[min(100%,22rem)]"
                   role="dialog"
                   aria-label="Choose date range"
                 >

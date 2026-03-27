@@ -9,7 +9,6 @@ import {
   DollarSign,
   FolderOpen,
   LayoutList,
-  List,
   Loader2,
   MoreVertical,
   Play,
@@ -157,7 +156,7 @@ function clientDisplay(p: ProjectRow | undefined): string {
   );
 }
 
-const WEEK_DAYS = ["Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun"] as const;
+const WEEK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
 function tagColor(label: string) {
   let h = 0;
@@ -394,26 +393,38 @@ export default function TimeTrackingView() {
     );
   }
 
+  const selectBaseClass =
+    "w-full rounded-lg border border-border bg-white py-2 pl-2.5 pr-8 text-sm text-text-primary shadow-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/15 dark:border-zinc-700 dark:bg-zinc-900/80 dark:text-zinc-100 dark:focus:border-blue-500/60 dark:focus:ring-blue-500/15";
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h1 className="heading-display text-2xl font-bold text-text-primary dark:text-zinc-100">
-            Time Tracking
-          </h1>
-          <p className="mt-1 text-sm text-text-secondary dark:text-zinc-400">
+    <div className="space-y-8">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent ring-1 ring-accent/15 dark:bg-blue-500/15 dark:text-blue-400 dark:ring-blue-500/25">
+              <Timer className="h-4 w-4" aria-hidden />
+            </span>
+            <h1 className="heading-display text-2xl font-bold tracking-tight text-text-primary dark:text-zinc-100">
+              Time Tracking
+            </h1>
+          </div>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-text-secondary dark:text-zinc-400">
             Start working without losing time — log hours to tasks and projects.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex rounded-xl border border-border bg-white p-1 dark:border-zinc-700 dark:bg-zinc-900">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div
+            className="inline-flex rounded-xl border border-border bg-zinc-50/90 p-1 shadow-sm dark:border-zinc-700 dark:bg-zinc-950/80"
+            role="group"
+            aria-label="View mode"
+          >
             <button
               type="button"
               onClick={() => setViewMode("list")}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold ${
+              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition ${
                 viewMode === "list"
-                  ? "bg-surface text-text-primary dark:bg-zinc-800 dark:text-zinc-100"
-                  : "text-text-secondary dark:text-zinc-500"
+                  ? "bg-white text-text-primary shadow-sm dark:bg-zinc-800 dark:text-zinc-100"
+                  : "text-text-secondary hover:text-text-primary dark:text-zinc-500 dark:hover:text-zinc-300"
               }`}
             >
               <LayoutList className="h-4 w-4" aria-hidden />
@@ -422,32 +433,32 @@ export default function TimeTrackingView() {
             <button
               type="button"
               onClick={() => setViewMode("calendar")}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold ${
+              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition ${
                 viewMode === "calendar"
-                  ? "bg-surface text-text-primary dark:bg-zinc-800 dark:text-zinc-100"
-                  : "text-text-secondary dark:text-zinc-500"
+                  ? "bg-white text-text-primary shadow-sm dark:bg-zinc-800 dark:text-zinc-100"
+                  : "text-text-secondary hover:text-text-primary dark:text-zinc-500 dark:hover:text-zinc-300"
               }`}
             >
               <CalendarDays className="h-4 w-4" aria-hidden />
               Calendar
             </button>
           </div>
-          <div className="flex items-center gap-1 rounded-xl border border-border bg-white px-2 py-1 dark:border-zinc-700 dark:bg-zinc-900">
+          <div className="flex items-center gap-0.5 rounded-xl border border-border bg-white px-1 py-1 shadow-sm dark:border-zinc-700 dark:bg-zinc-950/80">
             <button
               type="button"
               onClick={() => setSelectedDate((d) => addDays(d, -1))}
-              className="rounded-lg p-2 text-text-secondary hover:bg-surface dark:hover:bg-zinc-800"
+              className="rounded-lg p-2 text-text-secondary transition hover:bg-surface hover:text-text-primary dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
               aria-label="Previous day"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <span className="min-w-[10rem] text-center text-sm font-semibold text-text-primary dark:text-zinc-100">
+            <span className="min-w-[11rem] text-center text-sm font-semibold tabular-nums text-text-primary dark:text-zinc-100">
               {formatSelectedHeader(selectedDate)}
             </span>
             <button
               type="button"
               onClick={() => setSelectedDate((d) => addDays(d, 1))}
-              className="rounded-lg p-2 text-text-secondary hover:bg-surface dark:hover:bg-zinc-800"
+              className="rounded-lg p-2 text-text-secondary transition hover:bg-surface hover:text-text-primary dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
               aria-label="Next day"
             >
               <ChevronRight className="h-4 w-4" />
@@ -462,170 +473,257 @@ export default function TimeTrackingView() {
         </p>
       ) : null}
 
-      {/* Entry / timer bar */}
-      <div className="rounded-2xl border border-border bg-white p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/80 sm:p-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <Timer className="h-5 w-5 shrink-0 text-text-secondary dark:text-zinc-500" />
-            <List className="hidden h-5 w-5 shrink-0 text-text-secondary opacity-40 sm:block" />
-            <input
-              type="text"
-              value={workDescription}
-              onChange={(e) => setWorkDescription(e.target.value)}
-              disabled={Boolean(runningEntry)}
-              placeholder="What are you working on?"
-              className="min-w-0 flex-1 border-0 bg-transparent text-sm text-text-primary outline-none placeholder:text-text-secondary/60 disabled:opacity-60 dark:text-zinc-100"
-            />
+      {/* Entry / timer */}
+      <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm ring-1 ring-black/[0.03] dark:border-zinc-800 dark:bg-zinc-950/90 dark:ring-white/[0.04]">
+        <div className="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-stretch lg:gap-6">
+          <div className="flex min-w-0 flex-1 flex-col gap-3">
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary/80 dark:text-zinc-500">
+              Current session
+            </label>
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-600 dark:bg-zinc-800/90 dark:text-zinc-400">
+                <Timer className="h-5 w-5" aria-hidden />
+              </span>
+              <input
+                type="text"
+                value={workDescription}
+                onChange={(e) => setWorkDescription(e.target.value)}
+                disabled={Boolean(runningEntry)}
+                placeholder="What are you working on?"
+                className="min-w-0 flex-1 border-0 bg-transparent text-base font-medium text-text-primary outline-none placeholder:font-normal placeholder:text-text-secondary/55 disabled:opacity-60 dark:text-zinc-100 sm:text-lg"
+              />
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3 lg:border-t-0 lg:pt-0 dark:border-zinc-800">
-            <button
-              type="button"
-              onClick={() => runningEntry ? null : setBillable((b) => !b)}
-              className={`rounded-lg p-2 ${billable ? "text-emerald-600 dark:text-emerald-400" : "text-text-secondary dark:text-zinc-500"}`}
-              title="Billable"
-              disabled={Boolean(runningEntry)}
-            >
-              <DollarSign className="h-5 w-5" />
-            </button>
-            <span className="rounded-lg p-2 text-text-secondary dark:text-zinc-500" title="Tags (comma-separated below)">
-              <Tag className="h-5 w-5" />
-            </span>
-            <input
-              type="text"
-              value={tagsInput}
-              onChange={(e) => setTagsInput(e.target.value)}
-              disabled={Boolean(runningEntry)}
-              placeholder="Tags"
-              className="w-24 rounded-lg border border-border bg-white px-2 py-1.5 text-xs dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-            />
-            <span title="Project">
-              <Briefcase className="inline h-5 w-5 text-text-secondary dark:text-zinc-500" />
-            </span>
-            <select
-              value={projectId}
-              onChange={(e) => {
-                setProjectId(e.target.value);
-                setTaskId("");
-              }}
-              disabled={Boolean(runningEntry)}
-              className="max-w-[10rem] rounded-lg border border-border bg-white py-1.5 pl-2 pr-6 text-xs dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-            >
-              <option value="">Project</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.title}
-                </option>
-              ))}
-            </select>
-            <span title="Task">
-              <FolderOpen className="inline h-5 w-5 text-text-secondary dark:text-zinc-500" />
-            </span>
-            <select
-              value={taskId}
-              onChange={(e) => setTaskId(e.target.value)}
-              disabled={Boolean(runningEntry) || !projectId}
-              className="max-w-[10rem] rounded-lg border border-border bg-white py-1.5 pl-2 pr-6 text-xs dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-            >
-              <option value="">Task</option>
-              {tasksForProject.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.title}
-                </option>
-              ))}
-            </select>
-            <span className="ml-auto font-mono text-sm font-semibold tabular-nums text-text-primary dark:text-zinc-100">
-              {formatDurationSeconds(
-                runningEntry ? runningElapsed : 0
-              )}
-            </span>
+          <div className="flex shrink-0 flex-col items-stretch gap-3 sm:flex-row sm:items-center lg:flex-col lg:items-end xl:flex-row">
+            <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-zinc-50/90 px-4 py-3 dark:border-zinc-700/80 dark:bg-zinc-900/50 sm:justify-end">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary dark:text-zinc-500">
+                {runningEntry ? "Elapsed" : "Ready"}
+              </span>
+              <span className="font-mono text-2xl font-semibold tabular-nums tracking-tight text-text-primary dark:text-zinc-50">
+                {formatDurationSeconds(
+                  runningEntry ? runningElapsed : 0
+                )}
+              </span>
+            </div>
             <button
               type="button"
               disabled={actionBusy}
               onClick={() => void onStartStop()}
-              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white shadow-md transition ${
+              className={`flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold text-white shadow-md transition sm:h-12 sm:w-auto sm:min-w-[7.5rem] ${
                 runningEntry
-                  ? "bg-red-600 hover:bg-red-700"
-                  : "bg-text-primary hover:opacity-90 dark:bg-zinc-100 dark:text-zinc-900"
+                  ? "bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500"
+                  : "bg-text-primary hover:opacity-95 dark:bg-blue-600 dark:hover:bg-blue-500"
               } disabled:opacity-50`}
-              title={runningEntry ? "Stop" : "Start"}
             >
               {actionBusy ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : runningEntry ? (
-                <Square className="h-4 w-4 fill-current" />
+                <>
+                  <Square className="h-4 w-4 fill-current" />
+                  Stop
+                </>
               ) : (
-                <Play className="h-5 w-5 translate-x-0.5 fill-current" />
+                <>
+                  <Play className="h-5 w-5 translate-x-0.5 fill-current" />
+                  Start
+                </>
               )}
             </button>
+          </div>
+        </div>
+
+        <div className="border-t border-border bg-surface/40 px-4 py-4 dark:border-zinc-800 dark:bg-zinc-900/40 sm:px-5">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary/80 dark:text-zinc-500">
+            Link to work
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="space-y-1.5">
+              <span className="text-xs font-medium text-text-secondary dark:text-zinc-400">
+                Billing
+              </span>
+              <button
+                type="button"
+                onClick={() => (runningEntry ? null : setBillable((b) => !b))}
+                disabled={Boolean(runningEntry)}
+                className={`flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition disabled:opacity-60 ${
+                  billable
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
+                    : "border-border bg-white text-text-secondary dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400"
+                }`}
+              >
+                <DollarSign className="h-4 w-4 shrink-0" aria-hidden />
+                {billable ? "Billable" : "Non-billable"}
+              </button>
+            </div>
+            <div className="space-y-1.5">
+              <span className="flex items-center gap-1.5 text-xs font-medium text-text-secondary dark:text-zinc-400">
+                <Tag className="h-3.5 w-3.5 opacity-70" aria-hidden />
+                Tags
+              </span>
+              <input
+                type="text"
+                value={tagsInput}
+                onChange={(e) => setTagsInput(e.target.value)}
+                disabled={Boolean(runningEntry)}
+                placeholder="e.g. design, client-call"
+                className={`${selectBaseClass} disabled:opacity-60`}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <span className="flex items-center gap-1.5 text-xs font-medium text-text-secondary dark:text-zinc-400">
+                <Briefcase className="h-3.5 w-3.5 opacity-70" aria-hidden />
+                Project
+              </span>
+              <select
+                value={projectId}
+                onChange={(e) => {
+                  setProjectId(e.target.value);
+                  setTaskId("");
+                }}
+                disabled={Boolean(runningEntry)}
+                className={`${selectBaseClass} disabled:opacity-60`}
+              >
+                <option value="">Select project…</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <span className="flex items-center gap-1.5 text-xs font-medium text-text-secondary dark:text-zinc-400">
+                <FolderOpen className="h-3.5 w-3.5 opacity-70" aria-hidden />
+                Task
+              </span>
+              <select
+                value={taskId}
+                onChange={(e) => setTaskId(e.target.value)}
+                disabled={Boolean(runningEntry) || !projectId}
+                className={`${selectBaseClass} disabled:opacity-60`}
+              >
+                <option value="">Select task…</option>
+                {tasksForProject.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.title}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Week summary */}
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-3 dark:border-zinc-800">
-        <div className="flex flex-wrap gap-4 sm:gap-6">
-          {weekDays.map((d, i) => {
-            const key = localDayKey(d.toISOString());
-            const sec = dayTotalsSec[key] ?? 0;
-            const active =
-              localDayKey(selectedDate.toISOString()) === key;
-            return (
-              <button
-                key={WEEK_DAYS[i]}
-                type="button"
-                onClick={() => setSelectedDate(new Date(d))}
-                className={`text-left ${active ? "border-text-primary dark:border-zinc-100" : "border-transparent"} border-b-2 pb-1`}
-              >
-                <div className="text-xs font-medium text-text-secondary dark:text-zinc-500">
-                  {WEEK_DAYS[i]}
-                </div>
-                <div
-                  className={`text-sm font-semibold tabular-nums ${active ? "text-text-primary dark:text-zinc-100" : "text-text-secondary dark:text-zinc-400"}`}
-                >
-                  {formatDurationSeconds(sec)}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-        <div className="text-right">
-          <div className="text-xs font-medium text-text-secondary dark:text-zinc-500">
-            Week Total
+      <div className="rounded-2xl border border-border bg-zinc-50/80 p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50 sm:p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-text-secondary/80 dark:text-zinc-500">
+              This week
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {weekDays.map((d, i) => {
+                const dayKey = localDayKey(d.toISOString());
+                const sec = dayTotalsSec[dayKey] ?? 0;
+                const active =
+                  localDayKey(selectedDate.toISOString()) === dayKey;
+                return (
+                  <button
+                    key={dayKey}
+                    type="button"
+                    onClick={() => setSelectedDate(new Date(d))}
+                    className={`min-w-[4.25rem] rounded-xl px-3 py-2.5 text-left transition ${
+                      active
+                        ? "bg-accent/12 text-accent shadow-sm ring-1 ring-accent/25 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-500/30"
+                        : "bg-white text-text-secondary ring-1 ring-border hover:bg-surface hover:text-text-primary dark:bg-zinc-950/80 dark:text-zinc-400 dark:ring-zinc-700 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-200"
+                    }`}
+                  >
+                    <div
+                      className={`text-[11px] font-semibold uppercase tracking-wide ${active ? "text-accent/90 dark:text-blue-300/90" : ""}`}
+                    >
+                      {WEEK_DAYS[i]}
+                    </div>
+                    <div
+                      className={`mt-0.5 text-sm font-semibold tabular-nums ${active ? "text-text-primary dark:text-zinc-50" : ""}`}
+                    >
+                      {formatDurationSeconds(sec)}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          <div className="text-lg font-bold tabular-nums text-text-primary dark:text-zinc-100">
-            {formatDurationSeconds(weekTotalSec)}
+          <div className="shrink-0 rounded-xl border border-border bg-white px-5 py-3 text-right shadow-sm dark:border-zinc-700 dark:bg-zinc-950/80">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-text-secondary dark:text-zinc-500">
+              Week total
+            </div>
+            <div className="mt-1 text-2xl font-bold tabular-nums tracking-tight text-text-primary dark:text-zinc-50">
+              {formatDurationSeconds(weekTotalSec)}
+            </div>
           </div>
         </div>
       </div>
 
       {viewMode === "calendar" ? (
-        <div className="rounded-2xl border border-dashed border-border bg-white/50 px-8 py-16 text-center text-sm text-text-secondary dark:border-zinc-800 dark:bg-zinc-950/40 dark:text-zinc-400">
-          Calendar view is coming soon. Use the list below for now.
+        <div className="rounded-2xl border border-dashed border-border bg-gradient-to-b from-zinc-50/80 to-white px-6 py-14 text-center dark:border-zinc-800 dark:from-zinc-950/60 dark:to-zinc-950/30">
+          <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent dark:bg-blue-500/15 dark:text-blue-400">
+              <CalendarDays className="h-6 w-6" aria-hidden />
+            </span>
+            <p className="text-sm font-medium text-text-primary dark:text-zinc-200">
+              Calendar view is coming soon
+            </p>
+            <p className="text-sm text-text-secondary dark:text-zinc-500">
+              Use the list below to review and manage entries for now.
+            </p>
+          </div>
         </div>
       ) : null}
 
       {/* Table */}
-      <div className="overflow-hidden rounded-2xl border border-border bg-white dark:border-zinc-800 dark:bg-zinc-950/60">
+      <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm ring-1 ring-black/[0.03] dark:border-zinc-800 dark:bg-zinc-950/70 dark:ring-white/[0.04]">
+        <div className="border-b border-border px-4 py-3 dark:border-zinc-800 sm:px-5">
+          <h2 className="text-sm font-semibold text-text-primary dark:text-zinc-100">
+            {formatSelectedHeader(selectedDate)}
+          </h2>
+          <p className="mt-0.5 text-xs text-text-secondary dark:text-zinc-500">
+            {entriesForSelectedDay.length === 0
+              ? "No entries yet"
+              : `${entriesForSelectedDay.length} entr${entriesForSelectedDay.length === 1 ? "y" : "ies"}`}
+          </p>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead>
-              <tr className="border-b border-border bg-surface/80 text-[11px] font-semibold uppercase tracking-wider text-text-secondary dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-500">
-                <th className="px-4 py-3">Task</th>
-                <th className="px-4 py-3">Project</th>
-                <th className="px-4 py-3">Client</th>
-                <th className="px-4 py-3 text-right">Duration</th>
-                <th className="w-12 px-2 py-3" />
+              <tr className="border-b border-border bg-zinc-50/90 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-secondary/90 dark:border-zinc-800 dark:bg-zinc-900/90 dark:text-zinc-500">
+                <th className="px-4 py-3.5 sm:px-5">Task</th>
+                <th className="px-4 py-3.5 sm:px-5">Project</th>
+                <th className="px-4 py-3.5 sm:px-5">Client</th>
+                <th className="px-4 py-3.5 text-right sm:px-5">Duration</th>
+                <th className="w-12 px-2 py-3.5" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border dark:divide-zinc-800">
               {entriesForSelectedDay.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={5}
-                    className="px-4 py-12 text-center text-text-secondary dark:text-zinc-500"
-                  >
-                    No time logged this day. Start the timer or pick another
-                    day.
+                  <td colSpan={5} className="p-0">
+                    <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center">
+                      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-100 dark:bg-zinc-800/90">
+                        <Timer
+                          className="h-7 w-7 text-zinc-400 dark:text-zinc-500"
+                          aria-hidden
+                        />
+                      </span>
+                      <div>
+                        <p className="text-sm font-medium text-text-primary dark:text-zinc-200">
+                          Nothing logged for this day
+                        </p>
+                        <p className="mt-1 max-w-sm text-sm text-text-secondary dark:text-zinc-500">
+                          Start the timer above or choose another day in the
+                          week strip.
+                        </p>
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ) : (
