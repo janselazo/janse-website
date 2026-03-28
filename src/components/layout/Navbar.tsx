@@ -31,7 +31,7 @@ export default function Navbar() {
         <nav className="flex items-center gap-2 rounded-full border border-white/80 bg-white/85 px-3 py-2.5 shadow-soft backdrop-blur-xl md:gap-3 md:px-4 md:py-2">
           <Link href="/" className="group shrink-0 pl-1 md:pl-2">
             <span className="text-base font-bold tracking-tight text-text-primary">
-              Janse Lazo
+              Zenpho
             </span>
           </Link>
 

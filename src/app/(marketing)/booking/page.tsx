@@ -5,7 +5,7 @@ import BookingSection from "@/components/contact/BookingSection";
 export const metadata: Metadata = {
   title: "Book a Call",
   description:
-    "Pick a time on the calendar for a strategy or intro call with Janse Lazo — AI software development agency.",
+    "Pick a time on the calendar for a strategy or intro call with Zenpho — AI software development agency.",
 };
 
 export default function BookingPage() {

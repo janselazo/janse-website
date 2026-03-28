@@ -37,9 +37,9 @@ export default function PricingHero() {
           transition={{ duration: 0.45, delay: 0.12 }}
           className="mx-auto mt-6 max-w-2xl text-pretty text-base font-medium leading-relaxed text-text-primary/85 sm:mt-7 sm:text-lg sm:leading-relaxed"
         >
-          We design, build, and launch custom software products from MVPs to
-          full-scale platforms — fast, affordable, and built to grow with your
-          business.
+          Websites, web apps, mobile apps, and video games — each with a clear
+          starting price. Pick what you&apos;re building; we&apos;ll scope the
+          rest on a call.
         </motion.p>
       </div>
     </section>

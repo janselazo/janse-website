@@ -53,7 +53,7 @@ export default function ComingSoonModule({
         className="mt-8 inline-flex items-center justify-center gap-2 rounded-full border border-border bg-white px-6 py-3 text-sm font-semibold text-text-primary shadow-sm transition-colors hover:bg-surface dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
         onClick={() => {
           window.location.href =
-            "mailto:hello@janselazo.com?subject=Prospecting%20module%20interest";
+            "mailto:hello@zenpho.com?subject=Prospecting%20module%20interest";
         }}
       >
         <Bell className="h-4 w-4 opacity-70" aria-hidden />

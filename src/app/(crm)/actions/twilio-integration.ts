@@ -192,7 +192,7 @@ export async function testTwilioConnection(formData: FormData) {
   if (testDestinationPhone && fromPhone) {
     try {
       await client.messages.create({
-        body: "Janse CRM: Twilio test message — your integration is working.",
+        body: "Zenpho CRM: Twilio test message — your integration is working.",
         from: fromPhone,
         to: testDestinationPhone,
       });

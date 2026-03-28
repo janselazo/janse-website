@@ -11,7 +11,7 @@ export default function Footer() {
           <div>
             <Link href="/" className="group inline-block">
               <span className="text-lg font-bold tracking-tight text-text-primary">
-                Janse Lazo
+                Zenpho
               </span>
             </Link>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-text-secondary">
@@ -64,13 +64,13 @@ export default function Footer() {
             </h4>
             <div className="flex flex-col gap-2">
               <a
-                href="mailto:hello@janselazo.com"
+                href="mailto:hello@zenpho.com"
                 className="text-sm text-text-secondary transition-colors hover:text-accent"
               >
-                hello@janselazo.com
+                hello@zenpho.com
               </a>
               <a
-                href="https://x.com/janselazo"
+                href="https://x.com/zenpho"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-text-secondary transition-colors hover:text-accent"
@@ -78,7 +78,7 @@ export default function Footer() {
                 X / Twitter
               </a>
               <a
-                href="https://linkedin.com/in/janselazo"
+                href="https://www.linkedin.com/company/zenpho"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-text-secondary transition-colors hover:text-accent"
@@ -86,7 +86,7 @@ export default function Footer() {
                 LinkedIn
               </a>
               <a
-                href="https://github.com/janselazo"
+                href="https://github.com/zenpho"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-text-secondary transition-colors hover:text-accent"
@@ -99,7 +99,7 @@ export default function Footer() {
 
         <div className="mt-12 border-t border-border pt-8">
           <p className="text-center text-xs text-text-secondary/70">
-            &copy; {new Date().getFullYear()} Janse Lazo. All rights reserved.
+            &copy; {new Date().getFullYear()} Zenpho. All rights reserved.
           </p>
         </div>
       </div>

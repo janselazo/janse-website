@@ -26,7 +26,7 @@ export default function AboutHero() {
           transition={{ duration: 0.5, delay: 0.06 }}
           className="heading-display text-4xl font-bold leading-tight tracking-tight text-text-primary sm:text-5xl lg:text-6xl"
         >
-          Janse Lazo
+          Zenpho
         </motion.h1>
         <motion.p
           initial={{ opacity: 1, y: 16 }}
@@ -34,10 +34,10 @@ export default function AboutHero() {
           transition={{ duration: 0.45, delay: 0.12 }}
           className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-text-secondary sm:text-lg"
         >
-          Founder of{" "}
+          An{" "}
           <span className="font-medium text-text-primary">AI Product Studio</span>
-          . We run an Agency for client builds and a Studio for products we own —
-          same team, Miami-based, English &amp; Spanish.
+          : an agency for client builds and a studio for products we own. Based in
+          Miami — English &amp; Spanish.
         </motion.p>
       </div>
     </section>

@@ -7,7 +7,7 @@ import CTASection from "@/components/home/CTASection";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Development Services: Web App & SaaS ($2,999–$12,999), Mobile App ($3,999–$14,999), Website & Ecommerce ($999–$6,999). Starter, Growth, and Scale tiers. Book a call. Custom work $100–$150/h.",
+    "Development pricing: Websites from $999, Web Apps from $1,999, Mobile Apps from $2,999, Video Games from $3,999. Transparent starting points — book a call for a scoped quote. Custom work $100–$150/h.",
 };
 
 export default function PricingPage() {

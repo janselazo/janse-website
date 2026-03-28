@@ -6,7 +6,7 @@ import NewsletterSignup from "@/components/ui/NewsletterSignup";
 export const metadata: Metadata = {
   title: "Blog",
   description:
-    "Insights on AI engineering, startup building, growth methodology, and the craft of scalable software — from Janse Lazo.",
+    "Insights on AI engineering, startup building, growth methodology, and the craft of scalable software — from Zenpho.",
 };
 
 export default function BlogPage() {

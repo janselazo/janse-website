@@ -22,13 +22,13 @@ const caveat = Caveat({
 
 export const metadata: Metadata = {
   title: {
-    default: "Janse Lazo — AI Product Studio",
-    template: "%s | Janse Lazo",
+    default: "Zenpho — AI Product Studio",
+    template: "%s | Zenpho",
   },
   description:
-    "AI software development agency: AI apps, web, mobile, automation, and integrations — MVP from $1,999 or Scale from $3,999/mo. Studio for in-house products.",
+    "AI software development agency: websites, web apps, mobile apps, games, automation, and integrations — starting points from $999. Studio for in-house products.",
   openGraph: {
-    title: "Janse Lazo — AI Software Development Agency & Studio",
+    title: "Zenpho — AI Software Development Agency & Studio",
     description:
       "Design, build, and launch products that scale. Transparent pricing, weekly output, Studio for in-house builds.",
     type: "website",

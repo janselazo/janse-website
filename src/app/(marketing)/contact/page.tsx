@@ -5,7 +5,7 @@ import ContactForm from "@/components/contact/ContactForm";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Get in touch with Janse Lazo — AI software development agency for MVPs, web, mobile, plus in-house Studio products.",
+    "Get in touch with Zenpho — AI software development agency for MVPs, web, mobile, plus in-house Studio products.",
 };
 
 export default function ContactPage() {
@@ -25,10 +25,10 @@ export default function ContactPage() {
                   Email
                 </h3>
                 <a
-                  href="mailto:hello@janselazo.com"
+                  href="mailto:hello@zenpho.com"
                   className="text-text-primary transition-colors hover:text-accent"
                 >
-                  hello@janselazo.com
+                  hello@zenpho.com
                 </a>
               </div>
 
@@ -38,7 +38,7 @@ export default function ContactPage() {
                 </h3>
                 <div className="flex flex-col gap-2">
                   <a
-                    href="https://x.com/janselazo"
+                    href="https://x.com/zenpho"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-text-primary transition-colors hover:text-accent"
@@ -46,7 +46,7 @@ export default function ContactPage() {
                     X / Twitter
                   </a>
                   <a
-                    href="https://github.com/janselazo"
+                    href="https://github.com/zenpho"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-text-primary transition-colors hover:text-accent"
@@ -54,7 +54,7 @@ export default function ContactPage() {
                     GitHub
                   </a>
                   <a
-                    href="https://linkedin.com/in/janselazo"
+                    href="https://www.linkedin.com/company/zenpho"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-text-primary transition-colors hover:text-accent"
