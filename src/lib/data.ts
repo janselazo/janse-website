@@ -68,12 +68,14 @@ export interface MethodologyPillar {
 /** Single offering on the pricing page (one starting price + highlights). */
 export interface DevelopmentPricingOffering {
   id: string;
-  /** Display title, may include a leading emoji */
   title: string;
-  /** One line under the title */
   subtitle: string;
-  /** e.g. "Starting at $999" */
-  startingPriceLabel: string;
+  /** Formatted dollar amount, e.g. "$1,000" */
+  priceAmount: string;
+  /** Shown after price, e.g. "starting" */
+  priceSuffix?: string;
+  /** Middle / highlighted tier in the grid */
+  featured?: boolean;
   features: string[];
 }
 
@@ -81,61 +83,58 @@ export interface DevelopmentPricingOffering {
 export const developmentPricingOfferings: DevelopmentPricingOffering[] = [
   {
     id: "websites",
-    title: "🌐 Websites",
-    subtitle: "Marketing sites, landing pages, and content you can update.",
-    startingPriceLabel: "Starting at $999",
+    title: "Websites",
+    subtitle: "Marketing sites, landing pages, and content your team can update.",
+    priceAmount: "$1,000",
+    priceSuffix: "starting",
     features: [
-      "Responsive layouts and fast Core Web Vitals–minded delivery",
-      "Up to several pages or a focused landing system",
+      "Responsive layouts and performance-minded delivery",
       "UI/UX aligned to your brand",
-      "Basic SEO setup and analytics hooks",
-      "Optional CMS for your team to edit copy and media",
-      "Unlimited revisions within scope",
+      "SEO setup and analytics hooks",
+      "Optional CMS for ongoing edits",
       "Slack channel + post-launch support window",
     ],
   },
   {
     id: "web-apps",
-    title: "🖥️ Web Apps",
-    subtitle: "SaaS, dashboards, and internal tools in the browser.",
-    startingPriceLabel: "Starting at $1,999",
+    title: "Web Apps",
+    subtitle: "SaaS, dashboards, and internal tools — built to scale with usage.",
+    priceAmount: "$5,000",
+    priceSuffix: "starting",
+    featured: true,
     features: [
-      "Auth, roles, and production-ready patterns (e.g. Next.js / React)",
-      "APIs, data models, and integrations as scoped",
-      "MVP-first delivery — first shippable version in weeks",
-      "UI/UX for core flows and admin experiences",
+      "Auth, roles, and production-ready patterns",
+      "APIs, integrations, and data models as scoped",
+      "MVP-first delivery with weekly milestones",
       "CI-friendly codebase your team can extend",
-      "Unlimited revisions within scope",
       "Slack channel + post-launch support window",
     ],
   },
   {
-    id: "mobile-app",
-    title: "📱 Mobile App",
-    subtitle: "iOS, Android, or both — shipped to the stores.",
-    startingPriceLabel: "Starting at $2,999",
+    id: "mobile-apps",
+    title: "Mobile Apps",
+    subtitle: "iOS, Android, or both — store-ready when you are.",
+    priceAmount: "$7,000",
+    priceSuffix: "starting",
     features: [
-      "Single platform or cross-platform (e.g. React Native) by scope",
+      "Cross-platform or native by scope",
       "App Store / Play submission support",
-      "Core features, navigation, and offline-friendly patterns when needed",
-      "Push notifications and key native integrations as scoped",
-      "UI/UX tuned for mobile patterns and accessibility",
-      "Unlimited revisions within scope",
+      "Push, offline patterns, and core native hooks",
+      "Mobile-first UI/UX and accessibility",
       "Slack channel + post-launch support window",
     ],
   },
   {
-    id: "video-games",
-    title: "🎮 Video Games",
-    subtitle: "Playable builds from prototype to a shippable slice.",
-    startingPriceLabel: "Starting at $3,999",
+    id: "mobile-games",
+    title: "Mobile Games",
+    subtitle: "Playable slices through polished mobile builds.",
+    priceAmount: "$9,000",
+    priceSuffix: "starting",
     features: [
-      "Core loop, levels, or systems scoped to your genre",
-      "UI/UX for menus, HUD, and player feedback",
-      "2D or 3D pipeline aligned to your art direction",
-      "Milestone-based delivery (design → vertical slice → polish)",
-      "Target platform: PC, mobile, or web as agreed",
-      "Bug-fix pass after handoff",
+      "Core loop and systems scoped to your genre",
+      "Touch-first UI, HUD, and performance tuning",
+      "2D or 3D pipeline for phones and tablets",
+      "Milestone delivery through store readiness",
       "Slack channel + post-launch support window",
     ],
   },
@@ -198,15 +197,15 @@ export const services: Service[] = [
     icon: "zap",
   },
   {
-    title: "AI-Powered Features & Integrations",
+    title: "Mobile Games",
     description:
-      "We integrate AI capabilities into your product — from smart automations and lead scoring to intelligent workflows — so your software delivers more value to your users.",
+      "Playable prototypes through shippable slices on iOS and Android — core loops, touch UI, and builds tuned for mobile performance, with milestones you can playtest and ship.",
     details: [
-      "AI automations and intelligent workflows",
-      "Lead scoring and recommendation engines",
-      "Seamless integrations with your existing stack",
+      "2D or 3D pipeline scoped to your art direction and device targets",
+      "Milestone delivery: design, vertical slice, polish, and handoff",
+      "App Store / Play paths as scoped; bug-fix pass and integration support",
     ],
-    icon: "sparkle",
+    icon: "gamepad",
   },
 ];
 

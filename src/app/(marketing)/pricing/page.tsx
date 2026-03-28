@@ -7,7 +7,7 @@ import CTASection from "@/components/home/CTASection";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Development pricing: Websites from $999, Web Apps from $1,999, Mobile Apps from $2,999, Video Games from $3,999. Transparent starting points — book a call for a scoped quote. Custom work $100–$150/h.",
+    "Development pricing: Websites from $1,000, Web Apps from $5,000, Mobile Apps from $7,000, Mobile Games from $9,000. Book a call for a scoped quote. Custom work $100–$150/h.",
 };
 
 export default function PricingPage() {

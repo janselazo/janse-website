@@ -55,13 +55,15 @@ const iconMap: Record<string, React.ReactNode> = {
       />
     </svg>
   ),
-  sparkle: (
+  gamepad: (
     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.847a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.847.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"
+        d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.01.15v6.28c0 .07.004.13.01.19A4 4 0 0 0 6.68 19h10.64a4 4 0 0 0 3.978-3.59c.006-.05.01-.1.01-.15v-6.28c0-.05-.004-.1-.01-.15A4 4 0 0 0 17.32 5Z"
       />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 11h4M10 9v4" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12h.01M18 10h.01" />
     </svg>
   ),
   plug: (

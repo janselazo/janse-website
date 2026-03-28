@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Caveat } from "next/font/google";
+import { Inter, JetBrains_Mono, Caveat, Lora } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -20,13 +20,22 @@ const caveat = Caveat({
   display: "swap",
 });
 
+/** Italic serif accent on marketing pages (e.g. pricing headline). */
+const pricingSerif = Lora({
+  variable: "--font-pricing-serif",
+  subsets: ["latin"],
+  style: ["italic", "normal"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: {
     default: "Zenpho — AI Product Studio",
     template: "%s | Zenpho",
   },
   description:
-    "AI software development agency: websites, web apps, mobile apps, games, automation, and integrations — starting points from $999. Studio for in-house products.",
+    "AI software development agency: websites, web apps, mobile apps, mobile games, automation, and integrations — starting points from $1,000. Studio for in-house products.",
   openGraph: {
     title: "Zenpho — AI Software Development Agency & Studio",
     description:
@@ -44,7 +53,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} ${caveat.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
+        className={`${inter.variable} ${jetbrainsMono.variable} ${caveat.variable} ${pricingSerif.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
       >
         {children}
       </body>

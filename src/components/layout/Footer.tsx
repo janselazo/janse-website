@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { footerNavLinks } from "@/lib/data";
 
@@ -9,10 +10,14 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-6 py-14 lg:px-8">
         <div className="grid gap-10 md:grid-cols-3">
           <div>
-            <Link href="/" className="group inline-block">
-              <span className="text-lg font-bold tracking-tight text-text-primary">
-                Zenpho
-              </span>
+            <Link href="/" className="group inline-block" aria-label="Zenpho home">
+              <Image
+                src="/zenpho-logo.png"
+                alt="Zenpho"
+                width={140}
+                height={38}
+                className="h-9 w-auto"
+              />
             </Link>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-text-secondary">
               We build and scale software products through our Agency, and launch our own through Studio — same team, same standards.

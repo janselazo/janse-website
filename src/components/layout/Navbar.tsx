@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -29,10 +30,19 @@ export default function Navbar() {
         }`}
       >
         <nav className="flex items-center gap-2 rounded-full border border-white/80 bg-white/85 px-3 py-2.5 shadow-soft backdrop-blur-xl md:gap-3 md:px-4 md:py-2">
-          <Link href="/" className="group shrink-0 pl-1 md:pl-2">
-            <span className="text-base font-bold tracking-tight text-text-primary">
-              Zenpho
-            </span>
+          <Link
+            href="/"
+            className="group relative shrink-0 pl-1 md:pl-2"
+            aria-label="Zenpho home"
+          >
+            <Image
+              src="/zenpho-logo.png"
+              alt="Zenpho"
+              width={132}
+              height={36}
+              className="h-8 w-auto"
+              priority
+            />
           </Link>
 
           <div className="hidden min-w-0 flex-1 items-center justify-center lg:flex">

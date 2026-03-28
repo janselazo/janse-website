@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -101,14 +102,21 @@ export default function AppSidebar() {
     <aside className="flex w-56 shrink-0 flex-col border-r border-border bg-white dark:border-zinc-800/90 dark:bg-zinc-900 dark:shadow-[inset_-1px_0_0_0_rgba(255,255,255,0.04)]">
       <div className="flex-1 overflow-y-auto">
         {/* Brand */}
-        <div className="flex items-center gap-2.5 border-b border-border px-4 py-3.5 dark:border-zinc-800/80">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-sm font-bold text-blue-600 ring-1 ring-border dark:bg-zinc-800 dark:text-blue-400 dark:ring-zinc-700/80">
-            J
-          </span>
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2.5 border-b border-border px-4 py-3.5 dark:border-zinc-800/80"
+        >
+          <Image
+            src="/zenpho-mark.png"
+            alt=""
+            width={28}
+            height={28}
+            className="h-7 w-7 shrink-0"
+          />
           <span className="text-sm font-semibold text-text-primary dark:text-zinc-100">
-            AI Product Studio
+            Zenpho
           </span>
-        </div>
+        </Link>
 
         {/* Dashboard + Playbook */}
         <div className="px-2 pt-4">
