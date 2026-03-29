@@ -2,6 +2,21 @@
 
 import { useState, useEffect, useMemo } from "react";
 import {
+  DndContext,
+  type DragEndEvent,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
@@ -21,6 +36,7 @@ import {
   MoreHorizontal,
   Flame,
   Plus,
+  Minus,
   Target,
   DollarSign,
   Pencil,
@@ -29,6 +45,11 @@ import {
   CalendarDays,
   ListTodo,
   UsersRound,
+  GripVertical,
+  Briefcase,
+  Video,
+  TrendingUp,
+  Sparkles,
 } from "lucide-react";
 import IconTabBar from "@/components/crm/prospecting/IconTabBar";
 import {
@@ -67,14 +88,64 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 // ── Shared helpers ──────────────────────────────────────────────────────────
 
-const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-  phone: <Phone className="h-4 w-4" />,
-  "pen-line": <PenLine className="h-4 w-4" />,
-  megaphone: <Megaphone className="h-4 w-4" />,
-  handshake: <Handshake className="h-4 w-4" />,
-  gift: <Gift className="h-4 w-4" />,
-  search: <Search className="h-4 w-4" />,
-};
+const PLAYBOOK_CATEGORY_ICON_KEYS = [
+  "phone",
+  "pen-line",
+  "megaphone",
+  "handshake",
+  "gift",
+  "search",
+  "book-open",
+  "briefcase",
+  "users",
+  "calendar",
+  "mail",
+  "video",
+  "trending-up",
+  "sparkles",
+  "target",
+  "flame",
+] as const;
+
+function renderPlaybookCategoryIcon(key: string): React.ReactNode {
+  const cls = "h-4 w-4";
+  switch (key) {
+    case "phone":
+      return <Phone className={cls} />;
+    case "pen-line":
+      return <PenLine className={cls} />;
+    case "megaphone":
+      return <Megaphone className={cls} />;
+    case "handshake":
+      return <Handshake className={cls} />;
+    case "gift":
+      return <Gift className={cls} />;
+    case "search":
+      return <Search className={cls} />;
+    case "book-open":
+      return <BookOpen className={cls} />;
+    case "briefcase":
+      return <Briefcase className={cls} />;
+    case "users":
+      return <UsersRound className={cls} />;
+    case "calendar":
+      return <Calendar className={cls} />;
+    case "mail":
+      return <Mail className={cls} />;
+    case "video":
+      return <Video className={cls} />;
+    case "trending-up":
+      return <TrendingUp className={cls} />;
+    case "sparkles":
+      return <Sparkles className={cls} />;
+    case "target":
+      return <Target className={cls} />;
+    case "flame":
+      return <Flame className={cls} />;
+    default:
+      return null;
+  }
+}
 
 const TASK_TYPE_ICONS: Record<ProspectingTaskType, React.ReactNode> = {
   follow_up: <Clock className="h-4 w-4" />,
@@ -446,6 +517,269 @@ function MonthlyGoalsCard({
 
 // ── Playbook Tab ────────────────────────────────────────────────────────────
 
+type PlaybookEditFields = {
+  title: string;
+  points: number;
+  target: number;
+  timeEstimate: string;
+};
+
+function PlaybookCategoryRow({
+  cat,
+  isOpen,
+  catEarned,
+  catTotal,
+  completions,
+  editingSectionId,
+  sectionNameDraft,
+  setSectionNameDraft,
+  onConfirmEditSection,
+  onCancelEditSection,
+  onStartEditSection,
+  onDeleteSection,
+  onToggleCollapse,
+  editingActivity,
+  editFields,
+  setEditFields,
+  onStartEditActivity,
+  onConfirmEditActivity,
+  onCancelEditActivity,
+  onDeleteActivity,
+  onAddActivity,
+  onIncrement,
+  onDecrement,
+  iconPickerForCategoryId,
+  onToggleIconPicker,
+  onPickSectionIcon,
+}: {
+  cat: PlaybookCategory;
+  isOpen: boolean;
+  catEarned: number;
+  catTotal: number;
+  completions: Record<string, number>;
+  editingSectionId: string | null;
+  sectionNameDraft: string;
+  setSectionNameDraft: (v: string) => void;
+  onConfirmEditSection: () => void;
+  onCancelEditSection: () => void;
+  onStartEditSection: (c: PlaybookCategory) => void;
+  onDeleteSection: (id: string) => void;
+  onToggleCollapse: (id: string) => void;
+  editingActivity: string | null;
+  editFields: PlaybookEditFields;
+  setEditFields: React.Dispatch<React.SetStateAction<PlaybookEditFields>>;
+  onStartEditActivity: (a: PlaybookActivity) => void;
+  onConfirmEditActivity: () => void;
+  onCancelEditActivity: () => void;
+  onDeleteActivity: (catId: string, activityId: string) => void;
+  onAddActivity: (catId: string) => void;
+  onIncrement: (activityId: string, target: number) => void;
+  onDecrement: (activityId: string) => void;
+  iconPickerForCategoryId: string | null;
+  onToggleIconPicker: (catId: string) => void;
+  onPickSectionIcon: (catId: string, iconKey: string) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: cat.id });
+
+  const sortStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  const iconPickerOpen = iconPickerForCategoryId === cat.id;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={sortStyle}
+      className={`rounded-2xl border border-border bg-white shadow-sm ${
+        isDragging ? "z-10 opacity-90 shadow-md ring-2 ring-accent/20" : ""
+      }`}
+    >
+      <div className="group/sec flex items-center gap-2 px-5 py-4 sm:gap-3">
+        <button
+          type="button"
+          className="shrink-0 cursor-grab touch-none rounded-lg p-1.5 text-text-secondary/70 hover:bg-surface active:cursor-grabbing"
+          aria-label="Reorder section"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+
+        <div
+          className="relative shrink-0"
+          data-playbook-icon-picker={iconPickerOpen ? "" : undefined}
+        >
+          <button
+            type="button"
+            onClick={() => onToggleIconPicker(cat.id)}
+            aria-haspopup="dialog"
+            aria-expanded={iconPickerOpen}
+            aria-label="Change section icon"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-white transition-opacity hover:opacity-90"
+            style={{ backgroundColor: cat.color }}
+          >
+            {renderPlaybookCategoryIcon(cat.icon) ?? (
+              <Circle className="h-4 w-4" />
+            )}
+          </button>
+          {iconPickerOpen && (
+            <div
+              className="absolute left-0 top-full z-50 mt-1 max-h-56 w-48 overflow-y-auto rounded-xl border border-border bg-white p-2 shadow-lg"
+              role="dialog"
+              aria-label="Choose icon"
+            >
+              <div className="grid grid-cols-4 gap-1">
+                {PLAYBOOK_CATEGORY_ICON_KEYS.map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => onPickSectionIcon(cat.id, key)}
+                    className={`flex h-9 w-9 items-center justify-center rounded-lg text-text-secondary hover:bg-surface ${
+                      cat.icon === key
+                        ? "bg-accent/10 ring-1 ring-accent/30"
+                        : ""
+                    }`}
+                    aria-label={`Use ${key} icon`}
+                  >
+                    {renderPlaybookCategoryIcon(key) ?? (
+                      <Circle className="h-4 w-4" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onToggleCollapse(cat.id)}
+          aria-expanded={isOpen}
+          aria-label={isOpen ? "Collapse section" : "Expand section"}
+          className="flex shrink-0 items-center rounded-lg p-1 text-text-secondary transition-colors hover:bg-surface hover:text-text-primary"
+        >
+          <ChevronDown
+            className={`h-4 w-4 transition-transform ${
+              isOpen ? "" : "-rotate-90"
+            }`}
+          />
+        </button>
+
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          {editingSectionId === cat.id ? (
+            <>
+              <input
+                autoFocus
+                value={sectionNameDraft}
+                onChange={(e) => setSectionNameDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") onConfirmEditSection();
+                  if (e.key === "Escape") onCancelEditSection();
+                }}
+                placeholder="Section name"
+                className="min-w-0 flex-1 rounded-lg border border-accent bg-white px-2.5 py-1.5 text-sm font-semibold text-text-primary outline-none ring-2 ring-accent/15"
+              />
+              <button
+                type="button"
+                onClick={onConfirmEditSection}
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-emerald-500 hover:bg-emerald-50"
+                aria-label="Save section name"
+              >
+                <CheckCircle2 className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                onClick={onCancelEditSection}
+                className="shrink-0 rounded px-2 py-1 text-xs text-text-secondary hover:text-text-primary"
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <span className="truncate text-sm font-semibold text-text-primary">
+                {cat.name}
+              </span>
+              <button
+                type="button"
+                onClick={() => onStartEditSection(cat)}
+                className="rounded p-1 text-text-secondary/0 transition-colors group-hover/sec:text-text-secondary/50 hover:text-accent"
+                aria-label="Rename section"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+            </>
+          )}
+        </div>
+
+        <div className="flex shrink-0 items-center gap-2">
+          <div className="h-1.5 w-20 overflow-hidden rounded-full bg-gray-100">
+            <div
+              className="h-full rounded-full transition-all"
+              style={{
+                width: `${catTotal > 0 ? (catEarned / catTotal) * 100 : 0}%`,
+                backgroundColor: cat.color,
+              }}
+            />
+          </div>
+          <span className="text-xs tabular-nums text-text-secondary">
+            {catEarned}/{catTotal} pts
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onDeleteSection(cat.id)}
+          className="rounded p-1 text-text-secondary/40 transition-colors hover:text-red-500"
+          aria-label="Delete section"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      {isOpen && (
+        <div className="border-t border-border">
+          {cat.activities.map((activity, activityIndex) => (
+            <ActivityRow
+              key={activity.id}
+              activity={activity}
+              listIndex={activityIndex + 1}
+              completed={completions[activity.id] ?? 0}
+              isEditing={editingActivity === activity.id}
+              editFields={editFields}
+              onEditFieldsChange={setEditFields}
+              onStartEdit={() => onStartEditActivity(activity)}
+              onConfirmEdit={onConfirmEditActivity}
+              onCancelEdit={onCancelEditActivity}
+              onDelete={() => onDeleteActivity(cat.id, activity.id)}
+              onIncrement={() => onIncrement(activity.id, activity.target)}
+              onDecrement={() => onDecrement(activity.id)}
+            />
+          ))}
+          <div className="px-5 py-3">
+            <button
+              type="button"
+              onClick={() => onAddActivity(cat.id)}
+              className="flex items-center gap-1 text-xs font-medium text-text-secondary hover:text-accent"
+            >
+              <Plus className="h-3 w-3" /> Add Activity
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PlaybookTab() {
   const [completions, setCompletions] = useState<Record<string, number>>({});
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -453,9 +787,54 @@ function PlaybookTab() {
   const [playbookReady, setPlaybookReady] = useState(false);
   const [playbookUserId, setPlaybookUserId] = useState<string | null>(null);
   const [editingActivity, setEditingActivity] = useState<string | null>(null);
-  const [editFields, setEditFields] = useState({ title: "", points: 0, target: 0, timeEstimate: "" });
+  const [editFields, setEditFields] = useState<PlaybookEditFields>({
+    title: "",
+    points: 0,
+    target: 0,
+    timeEstimate: "",
+  });
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [sectionNameDraft, setSectionNameDraft] = useState("");
+  const [iconPickerForCategoryId, setIconPickerForCategoryId] = useState<
+    string | null
+  >(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 6 },
+    })
+  );
+
+  useEffect(() => {
+    if (!iconPickerForCategoryId) return;
+    function onPointerDown(e: PointerEvent) {
+      const el = e.target;
+      if (!(el instanceof Element)) return;
+      if (!el.closest("[data-playbook-icon-picker]")) {
+        setIconPickerForCategoryId(null);
+      }
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setIconPickerForCategoryId(null);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [iconPickerForCategoryId]);
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setCategories((prev) => {
+      const oldIndex = prev.findIndex((c) => c.id === active.id);
+      const newIndex = prev.findIndex((c) => c.id === over.id);
+      if (oldIndex < 0 || newIndex < 0) return prev;
+      return arrayMove(prev, oldIndex, newIndex);
+    });
+  }
 
   useEffect(() => {
     if (!isSupabaseConfigured()) {
@@ -681,6 +1060,14 @@ function PlaybookTab() {
     });
   }
 
+  function decrement(activityId: string) {
+    setCompletions((prev) => {
+      const cur = prev[activityId] ?? 0;
+      if (cur <= 0) return prev;
+      return { ...prev, [activityId]: cur - 1 };
+    });
+  }
+
   function toggleCollapse(catId: string) {
     setCollapsed((prev) => ({ ...prev, [catId]: !prev[catId] }));
   }
@@ -729,150 +1116,69 @@ function PlaybookTab() {
 
       {/* Activity sections */}
       <div className="mt-6 space-y-4">
-        {categories.map((cat) => {
-          const catEarned = cat.activities.reduce((s, a) => {
-            const done = completions[a.id] ?? 0;
-            return s + (done >= a.target ? a.points : 0);
-          }, 0);
-          const catTotal = cat.activities.reduce((s, a) => s + a.points, 0);
-          const isOpen = !collapsed[cat.id];
+        <DndContext
+          id="playbook-sections"
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={categories.map((c) => c.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {categories.map((cat) => {
+              const catEarned = cat.activities.reduce((s, a) => {
+                const done = completions[a.id] ?? 0;
+                return s + (done >= a.target ? a.points : 0);
+              }, 0);
+              const catTotal = cat.activities.reduce((s, a) => s + a.points, 0);
+              const isOpen = !collapsed[cat.id];
 
-          return (
-            <div
-              key={cat.id}
-              className="rounded-2xl border border-border bg-white shadow-sm"
-            >
-              {/* Section header */}
-              <div className="group/sec flex items-center gap-3 px-5 py-4">
-                <button
-                  type="button"
-                  onClick={() => toggleCollapse(cat.id)}
-                  aria-expanded={isOpen}
-                  aria-label={isOpen ? "Collapse section" : "Expand section"}
-                  className="flex shrink-0 items-center gap-2 rounded-lg py-1 pl-0 pr-2 text-text-secondary transition-colors hover:bg-surface hover:text-text-primary"
-                >
-                  <span
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-white"
-                    style={{ backgroundColor: cat.color }}
-                  >
-                    {CATEGORY_ICONS[cat.icon] ?? (
-                      <Circle className="h-4 w-4" />
-                    )}
-                  </span>
-                  <ChevronDown
-                    className={`h-4 w-4 transition-transform ${
-                      isOpen ? "" : "-rotate-90"
-                    }`}
-                  />
-                </button>
-
-                <div className="flex min-w-0 flex-1 items-center gap-2">
-                  {editingSectionId === cat.id ? (
-                    <>
-                      <input
-                        autoFocus
-                        value={sectionNameDraft}
-                        onChange={(e) => setSectionNameDraft(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") confirmEditSection();
-                          if (e.key === "Escape") cancelEditSection();
-                        }}
-                        placeholder="Section name"
-                        className="min-w-0 flex-1 rounded-lg border border-accent bg-white px-2.5 py-1.5 text-sm font-semibold text-text-primary outline-none ring-2 ring-accent/15"
-                      />
-                      <button
-                        type="button"
-                        onClick={confirmEditSection}
-                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-emerald-500 hover:bg-emerald-50"
-                        aria-label="Save section name"
-                      >
-                        <CheckCircle2 className="h-5 w-5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={cancelEditSection}
-                        className="shrink-0 rounded px-2 py-1 text-xs text-text-secondary hover:text-text-primary"
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <span className="truncate text-sm font-semibold text-text-primary">
-                        {cat.name}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => startEditSection(cat)}
-                        className="rounded p-1 text-text-secondary/0 transition-colors group-hover/sec:text-text-secondary/50 hover:text-accent"
-                        aria-label="Rename section"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                    </>
-                  )}
-                </div>
-
-                <div className="flex shrink-0 items-center gap-2">
-                  <div className="h-1.5 w-20 overflow-hidden rounded-full bg-gray-100">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{
-                        width: `${catTotal > 0 ? (catEarned / catTotal) * 100 : 0}%`,
-                        backgroundColor: cat.color,
-                      }}
-                    />
-                  </div>
-                  <span className="text-xs tabular-nums text-text-secondary">
-                    {catEarned}/{catTotal} pts
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => deleteSection(cat.id)}
-                  className="rounded p-1 text-text-secondary/40 transition-colors hover:text-red-500"
-                  aria-label="Delete section"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-
-              {/* Activities */}
-              {isOpen && (
-                <div className="border-t border-border">
-                  {cat.activities.map((activity, activityIndex) => (
-                    <ActivityRow
-                      key={activity.id}
-                      activity={activity}
-                      listIndex={activityIndex + 1}
-                      completed={completions[activity.id] ?? 0}
-                      isEditing={editingActivity === activity.id}
-                      editFields={editFields}
-                      onEditFieldsChange={setEditFields}
-                      onStartEdit={() => startEditActivity(activity)}
-                      onConfirmEdit={confirmEditActivity}
-                      onCancelEdit={() => setEditingActivity(null)}
-                      onDelete={() => deleteActivity(cat.id, activity.id)}
-                      onIncrement={() =>
-                        increment(activity.id, activity.target)
-                      }
-                    />
-                  ))}
-                  <div className="px-5 py-3">
-                    <button
-                      type="button"
-                      onClick={() => addActivity(cat.id)}
-                      className="flex items-center gap-1 text-xs font-medium text-text-secondary hover:text-accent"
-                    >
-                      <Plus className="h-3 w-3" /> Add Activity
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
+              return (
+                <PlaybookCategoryRow
+                  key={cat.id}
+                  cat={cat}
+                  isOpen={isOpen}
+                  catEarned={catEarned}
+                  catTotal={catTotal}
+                  completions={completions}
+                  editingSectionId={editingSectionId}
+                  sectionNameDraft={sectionNameDraft}
+                  setSectionNameDraft={setSectionNameDraft}
+                  onConfirmEditSection={confirmEditSection}
+                  onCancelEditSection={cancelEditSection}
+                  onStartEditSection={startEditSection}
+                  onDeleteSection={deleteSection}
+                  onToggleCollapse={toggleCollapse}
+                  editingActivity={editingActivity}
+                  editFields={editFields}
+                  setEditFields={setEditFields}
+                  onStartEditActivity={startEditActivity}
+                  onConfirmEditActivity={confirmEditActivity}
+                  onCancelEditActivity={() => setEditingActivity(null)}
+                  onDeleteActivity={deleteActivity}
+                  onAddActivity={addActivity}
+                  onIncrement={increment}
+                  onDecrement={decrement}
+                  iconPickerForCategoryId={iconPickerForCategoryId}
+                  onToggleIconPicker={(catId) =>
+                    setIconPickerForCategoryId((p) =>
+                      p === catId ? null : catId
+                    )
+                  }
+                  onPickSectionIcon={(catId, iconKey) => {
+                    setCategories((prev) =>
+                      prev.map((c) =>
+                        c.id === catId ? { ...c, icon: iconKey } : c
+                      )
+                    );
+                    setIconPickerForCategoryId(null);
+                  }}
+                />
+              );
+            })}
+          </SortableContext>
+        </DndContext>
       </div>
 
       <button
@@ -898,6 +1204,7 @@ function ActivityRow({
   onCancelEdit,
   onDelete,
   onIncrement,
+  onDecrement,
 }: {
   activity: PlaybookActivity;
   /** 1-based position in the section (not the internal id — those can be long timestamps). */
@@ -911,6 +1218,7 @@ function ActivityRow({
   onCancelEdit: () => void;
   onDelete: () => void;
   onIncrement: () => void;
+  onDecrement: () => void;
 }) {
   const isDone = completed >= activity.target;
 
@@ -1002,21 +1310,37 @@ function ActivityRow({
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>
-        <span className="ml-1 text-xs tabular-nums text-text-secondary">
-          {completed}
-        </span>
-        <button
-          type="button"
-          onClick={onIncrement}
-          disabled={isDone}
-          className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs transition-colors ${
-            isDone
-              ? "border-emerald-300 bg-emerald-50 text-emerald-500"
-              : "border-border bg-white text-text-secondary hover:border-accent hover:text-accent"
-          }`}
-        >
-          {isDone ? "✓" : "+"}
-        </button>
+        <div className="ml-1 flex items-stretch rounded-lg border border-border bg-white">
+          <button
+            type="button"
+            onClick={onDecrement}
+            disabled={completed <= 0}
+            aria-label="Decrease progress"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-l-[7px] border-r border-border text-text-secondary transition-colors hover:bg-gray-50 disabled:pointer-events-none disabled:opacity-40"
+          >
+            <Minus className="h-3.5 w-3.5" />
+          </button>
+          <span className="flex min-w-[2rem] items-center justify-center text-sm font-semibold tabular-nums text-text-primary">
+            {completed}
+          </span>
+          <button
+            type="button"
+            onClick={onIncrement}
+            disabled={isDone}
+            aria-label={isDone ? "Target reached" : "Increase progress"}
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-r-[7px] border-l text-text-secondary transition-colors disabled:pointer-events-none disabled:opacity-40 ${
+              isDone
+                ? "border-emerald-200 bg-emerald-50 text-emerald-600"
+                : "border-accent/35 bg-accent/5 text-accent hover:bg-accent/10"
+            }`}
+          >
+            {isDone ? (
+              <CheckCircle2 className="h-4 w-4" />
+            ) : (
+              <Plus className="h-3.5 w-3.5" />
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
